@@ -1,0 +1,14 @@
+{
+  "capture_date": "2026-10-28",
+  "assets": {
+    "vault-cloud-verified.jpg": "VIT_Vault_Complete_Demo_No_Footers.pptx, slide 60, original image55.jpeg",
+    "vault-receipt.jpg": "VIT_Vault_Complete_Demo_No_Footers.pptx, slide 15, original image13.jpeg",
+    "clubs-student.jpg": "clubsphere_IEEE_Conference_Paper.docx, original image3.jpg",
+    "clubs-coordinator.jpg": "clubsphere_IEEE_Conference_Paper.docx, original image6.jpg",
+    "intent-rehearsal.png": "Intent Lab artifacts/presentation/injection-rehearsal.png; actual v5 development rehearsal, fictional data",
+    "wnams-reference-plan.png": "WNAMS assets/hostel-reference/hostel-reference-floorplan.png; designed reference fixture, not a measured survey",
+    "replay-source.webm": "Playable Replay outputs/datasets/staggered-seed42/clip.webm; synthetic source fixture named in the exported reconstruction metadata",
+    "polyglot-workspace.png": "Browser capture of the included original PolyGlot app, running mixed_demo.poly",
+    "realityforge-workspace.png": "Browser capture of the included original RealityForge app using synthetic desk input"
+  }
+}

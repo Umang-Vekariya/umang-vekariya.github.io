@@ -1,0 +1,19 @@
+{
+  "event_id": "staggered-seed42-png-v2",
+  "tracking_id": "staggered-seed42-png-v2",
+  "dataset_id": "staggered-seed42",
+  "source": "frames",
+  "frame_count": 300,
+  "fps": 30.0,
+  "paddle_rule": "mirror",
+  "initial_speed": 330.6000176971937,
+  "completed_trials": 6,
+  "eligible_trials": 6,
+  "warning_count": 0,
+  "tracks_sha256": "5a5d273a09a225d90dcc521240049cbed0c0b8f75e67ac60706c183ae3c904c6",
+  "reference_available": true,
+  "physics_id": "staggered-seed42-png-v2",
+  "ready_frames": 224,
+  "replay_mean_error": 0.6453,
+  "terminal_status": "running"
+}
