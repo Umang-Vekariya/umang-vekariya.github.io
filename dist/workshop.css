@@ -29,7 +29,7 @@
 .project-ghost{display:none}.demo-copy{transition:opacity .35s,filter .35s;max-width:500px}
 html[data-camera-traveling] .demo-copy{opacity:.3;filter:blur(2px);pointer-events:none}
 html[data-camera-traveling] .demo-controls,html[data-camera-traveling] .demo-links{pointer-events:none}
-.workshop-project-meta{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:10px;font:8px/1.6 var(--mono);color:#9bb4a7}
+.workshop-project-meta{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:10px;font:8px/1.6 var(--mono);color:#9bb4a7;pointer-events:auto}
 #workshop-return{font:9px var(--mono);background:none;color:#c9b79c;padding:7px 0;display:flex;gap:12px;align-items:center;white-space:nowrap}
 #workshop-return:hover{color:#f0a481}
 .demo-copy .demo-premise{color:#b9c7bc}.demo-stage-detail>p{color:#b8c2b6}.demo-controls .demo-secondary{background:#0c1a1cc4;border-color:#a4c9b437}.demo-links>a,.demo-links>button{color:#c9bda7}
