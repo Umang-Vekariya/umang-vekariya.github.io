@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import {createWorkshop} from './workshop-architecture.js';
 import {workshopShot} from './workshop-layout.js';
+import {profileShot,profileStops} from './profile-layout.js';
+import {createProfileFoyer} from './profile-foyer.js';
 import {createProjectWorlds} from './project-worlds.js';
 import {createRibbonSculpture,advanceHover} from './ribbon-sculpture.js';
 import {RoomEnvironment} from './vendor/environments/RoomEnvironment.js';
@@ -54,6 +56,7 @@ export async function initWorld(demoEngine){
  // The identity is physical geometry in the same scene: it is lit, occluded,
  // reflected, and moved by the same camera as the sculpture.
  const font=await new FontLoader().loadAsync('./assets/helvetiker_bold.typeface.json');
+ const profileFoyer=createProfileFoyer({scene,box,font,chrome,graphite,red});
  const identity=new THREE.Group();scene.add(identity);
  const nameMaterial=new THREE.MeshPhysicalMaterial({color:0xe1ddd1,metalness:.38,roughness:.27,clearcoat:.3,transparent:true});
  const nameSide=new THREE.MeshStandardMaterial({color:0x4b4540,metalness:.9,roughness:.22,transparent:true});
@@ -76,7 +79,7 @@ export async function initWorld(demoEngine){
  const bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.23,.4,1.6);composer.addPass(bloom);composer.addPass(new OutputPass());
  let lastTextureRevision=-1,lastRenderKey='',qualityFrames=0,slowFrames=0;
  let visible=true,motion=!document.documentElement.classList.contains('motion-off'),pointer={x:0,y:0},elapsed=0,previous=0,lastFrame=0,w=0,h=0;
- let mode=document.documentElement.dataset.sceneMode||'intro',phase=Number((mode==='project'?projectTrack:mode==='gateway'?document.querySelector('#project-overview'):track).dataset.phase||0),projectIndex=Number(projectTrack.dataset.project||0),turn=0,dragX=0,dragging=false,lastX=0;
+ let mode=document.documentElement.dataset.sceneMode||'intro',phase=Number((mode==='project'?projectTrack:mode==='gateway'?document.querySelector('#project-overview'):mode==='profile'?document.querySelector('#about'):track).dataset.phase||0),projectIndex=Number(projectTrack.dataset.project||0),turn=0,dragX=0,dragging=false,lastX=0;
  const look=new THREE.Vector3(),desired=new THREE.Vector3(),lookCurrent=new THREE.Vector3(0,-.15,-.3);
  let moving=false,flight=null,lastLocation='intro',frameClock=0,previewStation=-1;
  addEventListener('portfolio-station-preview',e=>{previewStation=e.detail.index;});
@@ -124,7 +127,9 @@ export async function initWorld(demoEngine){
   hero.dataset.hoverEnergy=energy.toFixed(3);hero.dataset.hoverSource=hoverTarget?'pointer':now<pulseUntil?'tap':'none';track.dataset.hoverField=energy>.1?(dragging?'dragging':'active'):'resting';if(trigger)trigger.setAttribute('aria-pressed',String(energy>.4));
   const portrait=w<h*.85,p=motion?phase:Math.round(phase),intro=smooth(.15,1,p),direction=smooth(1.1,2.3,p);
   const renderKey=[mode,p,w,h,projectIndex,mode==='project'?demoEngine.revision:0,dragX,motion,energy.toFixed(3)].join('/');if(!motion&&renderKey===lastRenderKey)return;lastRenderKey=renderKey;
-  projectWorlds.setVisible(true);identity.visible=mode==='intro';sculpture.visible=true;
+  const showProjects=mode==='gateway'||mode==='project',profileIndex=Math.min(2,Math.max(0,Math.round(p)));
+  projectWorlds.setVisible(showProjects);identity.visible=mode==='intro';sculpture.visible=true;
+  profileFoyer.update({active:profileIndex,time:elapsed,motion,portrait,narrow:!portrait&&w/h<1.25,visible:mode==='profile'});
   const gateway=mode==='gateway';
   projectWorlds.update({phase:mode==='project'?p:0,time:elapsed,delta,motion,portrait,turn:0,index:mode==='project'?projectIndex:-1,compact:!portrait&&h<700,narrow:!portrait&&w/h<1.25});
   if(lastTextureRevision!==demoEngine.revision){projectWorlds.refresh();lastTextureRevision=demoEngine.revision;}
@@ -135,6 +140,9 @@ export async function initWorld(demoEngine){
    assembly.rotation.set(.12+intro*.35+energy*hoverY*.14,-.48+p*.75+dragX+(motion?Math.sin(elapsed*.15)*.05:0)+energy*hoverX*.19,-.12+intro*.2-energy*hoverX*.06);
    folded.update({time:elapsed,phase:p,motion,energy,pointerX:hoverX,pointerY:hoverY,compact:portrait});
    const fade=1-smooth(.35,1,p);identity.visible=fade>.001;identity.position.set(intro*2.4,-1.65+intro*.55,.5-intro*4.5);identity.rotation.y=-.08-intro*.4;identity.scale.setScalar(portrait?.59:1);nameMaterial.opacity=fade;nameSide.opacity=fade;
+  }else if(mode==='profile'){
+   const shot=profileShot(profileIndex,{portrait,aspect:w/h,phase:p});desired.set(...shot.position);look.set(...shot.target);
+   sculpture.position.set(2.15,.57,-1.05);sculpture.scale.setScalar(.65);folded.update({time:elapsed,phase:2.6,motion,energy:0,pointerX:0,pointerY:0,compact:portrait});
   }else if(gateway){
    const g=smooth(0,1,p);desired.set(portrait?10:14+g*2,portrait?12:10+g*3,portrait?15:15-g*4);look.set(portrait?-2:0,-1,-22-g*5);
    sculpture.position.set(2.15,.57,-1.05);sculpture.scale.setScalar(.65);folded.update({time:elapsed,phase:2.6,motion,energy:0,pointerX:0,pointerY:0,compact:portrait});
@@ -144,9 +152,9 @@ export async function initWorld(demoEngine){
    sculpture.position.set(2.15,.57,-1.05);sculpture.scale.setScalar(.65);
   }
   floor.visible=mode==='intro'&&!portrait&&p<1.1;glaze.visible=floor.visible;
-  const location=mode==='project'?'project-'+projectIndex:mode;
+  const location=mode==='project'?'project-'+projectIndex:mode==='profile'?'profile-'+profileIndex:mode;
   if(location!==lastLocation){
-   if(motion&&frameClock){fromPosition.copy(camera.position);fromLook.copy(lookCurrent);flight={start:now,duration:mode==='project'?1700:1500};}
+   if(motion&&frameClock){fromPosition.copy(camera.position);fromLook.copy(lookCurrent);flight={start:now,duration:mode==='project'?1700:mode==='profile'?1400:1500};}
    else flight=null;
    lastLocation=location;
   }
@@ -159,10 +167,10 @@ export async function initWorld(demoEngine){
   }else{const follow=1-Math.exp(-delta*7);camera.position.lerp(desired,follow);lookCurrent.lerp(look,follow);}
   camera.lookAt(lookCurrent);frameClock=now;
   document.documentElement.toggleAttribute('data-camera-traveling',moving&&mode==='project');
-  workshop.update({time:elapsed,motion,index:mode==='project'?projectIndex:previewStation});
+  workshop.update({time:elapsed,motion,delta,showProjects,index:mode==='project'?projectIndex:previewStation});
   turn=Math.max(0,turn-delta*1.6);
   rim.intensity=mode==='intro'?3:1.7;side.intensity=mode==='intro'?12:5;dust.rotation.y=elapsed*.004;
-  hero.dataset.scenePhase=p.toFixed(3);hero.dataset.sceneMode=mode;hero.dataset.sceneWorld=mode==='project'?projectWorlds.names[projectIndex]:mode==='gateway'?'Workshop overview':'Identity';hero.dataset.activeStudy=mode==='project'?String(projectIndex):'-1';
+  hero.dataset.scenePhase=p.toFixed(3);hero.dataset.sceneMode=mode;hero.dataset.sceneWorld=mode==='project'?projectWorlds.names[projectIndex]:mode==='gateway'?'Workshop overview':mode==='profile'?profileStops[profileIndex].label:'Identity';hero.dataset.activeStudy=mode==='project'?String(projectIndex):'-1';
   bloom.strength=mode==='intro'?.1+energy*.12:.2;
   composer.render(delta);
   if(!document.documentElement.classList.contains('world-ready'))document.documentElement.classList.add('world-ready');
