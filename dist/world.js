@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import {createWorkshop} from './workshop-architecture.js';
+import {workshopShot} from './workshop-layout.js';
 import {createProjectWorlds} from './project-worlds.js';
 import {createRibbonSculpture,advanceHover} from './ribbon-sculpture.js';
 import {RoomEnvironment} from './vendor/environments/RoomEnvironment.js';
@@ -22,8 +24,8 @@ export async function initWorld(demoEngine){
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.94;
  renderer.outputColorSpace=THREE.SRGBColorSpace;
  renderer.domElement.setAttribute('aria-hidden','true');hero.append(renderer.domElement);
- const scene=new THREE.Scene();scene.background=new THREE.Color('#151515');scene.fog=new THREE.FogExp2('#090909',.043);
- const camera=new THREE.PerspectiveCamera(35,1,.1,70);
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#0c1216');scene.fog=new THREE.FogExp2('#0c1216',.017);
+ const camera=new THREE.PerspectiveCamera(35,1,.1,180);
  const envScene=new RoomEnvironment();
  const pmrem=new THREE.PMREMGenerator(renderer),env=pmrem.fromScene(envScene,.035);
  scene.environment=env.texture;scene.environmentIntensity=.55;envScene.dispose();pmrem.dispose();
@@ -39,28 +41,11 @@ export async function initWorld(demoEngine){
  const side=new THREE.PointLight(0xff1a06,12,15,2);side.position.set(-3,-.8,2);scene.add(side);
  const high=new THREE.PointLight(0xe1e8ff,12,14,2);high.position.set(1,4,3);scene.add(high);
 
- const chamber=new THREE.Group();scene.add(chamber);
- const wallMat=new THREE.MeshStandardMaterial({color:0x0b0b0c,roughness:.36,metalness:.65});
  function box(w,h,d,mat,x=0,y=0,z=0,round=.035){const m=new THREE.Mesh(new RoundedBoxGeometry(w,h,d,2,Math.min(round,w/4,h/4,d/4)),mat);m.position.set(x,y,z);return m;}
- // Architectural panels, seams, and long reflected strip lights.
- for(let s of [-1,1]){
-  const wall=box(1.1,8,18,wallMat,s*6,1,-5);chamber.add(wall);
-  for(let i=0;i<8;i++){
-   const panel=box(.1,6.5,.025,i%3===0?red:graphite,s*5.42,.5,-i*1.6);chamber.add(panel);
-  }
-  const rail=box(.03,.035,22,red,s*4.2,-2.05,-5);chamber.add(rail);
- }
- const rear=box(12,9,.3,wallMat,0,0,-9);chamber.add(rear);
- for(let i=-4;i<=4;i++){
-  const seam=box(.018,9,.025,i%2===0?faint:graphite,i*1.3,0,-8.8);chamber.add(seam);
- }
- const portal=new THREE.Group();portal.position.set(0,.2,-5.2);chamber.add(portal);
- for(let s of [-1,1]){portal.add(box(.055,6.7,.08,red,s*3.2,.15,0));}
- portal.add(box(6.45,.055,.08,red,0,3.5,0));
- const floor=new Reflector(new THREE.PlaneGeometry(40,45),{textureWidth:mobile?384:768,textureHeight:mobile?384:768,color:0x292526,clipBias:.003});
- floor.rotation.x=-Math.PI/2;floor.position.set(0,-2.2,-4);scene.add(floor);
- // The transparent dark glaze keeps the reflected sculpture in the background.
- const glaze=new THREE.Mesh(new THREE.PlaneGeometry(40,45),new THREE.MeshBasicMaterial({color:0x070404,transparent:true,opacity:.68,depthWrite:false}));glaze.rotation.x=-Math.PI/2;glaze.position.set(0,-2.193,-4);scene.add(glaze);
+ const workshop=createWorkshop({scene,box,chrome,graphite,red});
+ const floor=new Reflector(new THREE.PlaneGeometry(18,14),{textureWidth:mobile?256:512,textureHeight:mobile?256:512,color:0x303638,clipBias:.003});
+ floor.rotation.x=-Math.PI/2;floor.position.set(0,-3.12,1);scene.add(floor);
+ const glaze=new THREE.Mesh(new THREE.PlaneGeometry(18,14),new THREE.MeshBasicMaterial({color:0x0b1012,transparent:true,opacity:.72,depthWrite:false}));glaze.rotation.x=-Math.PI/2;glaze.position.set(0,-3.113,1);scene.add(glaze);
 
  const sculpture=new THREE.Group();sculpture.position.y=.2;scene.add(sculpture);
  const folded=createRibbonSculpture(),assembly=folded.assembly;sculpture.add(assembly);
@@ -91,8 +76,11 @@ export async function initWorld(demoEngine){
  const bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.23,.4,1.6);composer.addPass(bloom);composer.addPass(new OutputPass());
  let lastTextureRevision=-1,lastRenderKey='',qualityFrames=0,slowFrames=0;
  let visible=true,motion=!document.documentElement.classList.contains('motion-off'),pointer={x:0,y:0},elapsed=0,previous=0,lastFrame=0,w=0,h=0;
- let mode=document.documentElement.dataset.sceneMode||'intro',phase=Number((mode==='project'?projectTrack:track).dataset.phase||0),projectIndex=Number(projectTrack.dataset.project||0),turn=0,dragX=0,dragging=false,lastX=0;
- const look=new THREE.Vector3(),desired=new THREE.Vector3();
+ let mode=document.documentElement.dataset.sceneMode||'intro',phase=Number((mode==='project'?projectTrack:mode==='gateway'?document.querySelector('#project-overview'):track).dataset.phase||0),projectIndex=Number(projectTrack.dataset.project||0),turn=0,dragX=0,dragging=false,lastX=0;
+ const look=new THREE.Vector3(),desired=new THREE.Vector3(),lookCurrent=new THREE.Vector3(0,-.15,-.3);
+ let moving=false,flight=null,lastLocation='intro',frameClock=0,previewStation=-1;
+ addEventListener('portfolio-station-preview',e=>{previewStation=e.detail.index;});
+ const fromPosition=new THREE.Vector3(),fromLook=new THREE.Vector3();
  const hoverSpring={value:0,velocity:0},hoverSphere=new THREE.Sphere(),hoverPoint=new THREE.Vector3();let hoverTarget=0,pulseUntil=0,hoverX=0,hoverY=0,touchStartY=0;
  const trigger=document.querySelector('#sculpture-trigger');
  if(trigger){trigger.disabled=!motion;trigger.textContent=matchMedia('(hover:hover)').matches?'Hover to energize ↗':'Tap to energize ↗';trigger.addEventListener('click',()=>{if(motion){const now=performance.now();pulseUntil=pulseUntil>now?0:now+5000;}});}
@@ -136,28 +124,46 @@ export async function initWorld(demoEngine){
   hero.dataset.hoverEnergy=energy.toFixed(3);hero.dataset.hoverSource=hoverTarget?'pointer':now<pulseUntil?'tap':'none';track.dataset.hoverField=energy>.1?(dragging?'dragging':'active'):'resting';if(trigger)trigger.setAttribute('aria-pressed',String(energy>.4));
   const portrait=w<h*.85,p=motion?phase:Math.round(phase),intro=smooth(.15,1,p),direction=smooth(1.1,2.3,p);
   const renderKey=[mode,p,w,h,projectIndex,mode==='project'?demoEngine.revision:0,dragX,motion,energy.toFixed(3)].join('/');if(!motion&&renderKey===lastRenderKey)return;lastRenderKey=renderKey;
-  projectWorlds.setVisible(mode==='project');identity.visible=mode==='intro';sculpture.visible=mode==='intro';
+  projectWorlds.setVisible(true);identity.visible=mode==='intro';sculpture.visible=true;
+  const gateway=mode==='gateway';
+  projectWorlds.update({phase:mode==='project'?p:0,time:elapsed,delta,motion,portrait,turn:0,index:mode==='project'?projectIndex:-1,compact:!portrait&&h<700,narrow:!portrait&&w/h<1.25});
+  if(lastTextureRevision!==demoEngine.revision){projectWorlds.refresh();lastTextureRevision=demoEngine.revision;}
   if(mode==='intro'){
-   const push=Math.sin(clamp(p/1.7)*Math.PI)*1.5;
-   desired.set(Math.sin(p*.8)*.35+(motion?pointer.x*.09:0),.25+Math.sin(p*.8)*.25,(portrait?18.2:10.5)-push-energy*(portrait?.10:.25));
-   look.set(0,portrait?-.05:-.15,-.3);
+   desired.set(Math.sin(p*.8)*.35-direction*1.8+(motion?pointer.x*.1:0),.25+direction*.85,(portrait?18.2:11.6)-direction*1.9-energy*.15);
+   look.set(0,portrait?-.05:-.15,-.3-direction*3.3);
    sculpture.position.set(portrait?0:intro*2.15,.42+intro*.15,-intro*.8-direction*.25);sculpture.scale.setScalar(1-intro*.24-direction*.1);
    assembly.rotation.set(.12+intro*.35+energy*hoverY*.14,-.48+p*.75+dragX+(motion?Math.sin(elapsed*.15)*.05:0)+energy*hoverX*.19,-.12+intro*.2-energy*hoverX*.06);
    folded.update({time:elapsed,phase:p,motion,energy,pointerX:hoverX,pointerY:hoverY,compact:portrait});
    const fade=1-smooth(.35,1,p);identity.visible=fade>.001;identity.position.set(intro*2.4,-1.65+intro*.55,.5-intro*4.5);identity.rotation.y=-.08-intro*.4;identity.scale.setScalar(portrait?.59:1);nameMaterial.opacity=fade;nameSide.opacity=fade;
-   floor.visible=!portrait&&p<1.1;glaze.visible=floor.visible;chamber.position.z=-p*.38;
+  }else if(gateway){
+   const g=smooth(0,1,p);desired.set(portrait?10:14+g*2,portrait?12:10+g*3,portrait?15:15-g*4);look.set(portrait?-2:0,-1,-22-g*5);
+   sculpture.position.set(2.15,.57,-1.05);sculpture.scale.setScalar(.65);folded.update({time:elapsed,phase:2.6,motion,energy:0,pointerX:0,pointerY:0,compact:portrait});
   }else{
-   const shots=[[-.10,.55,.1],[.12,.24,0],[.10,.32,.35],[.18,.20,.15],[-.08,.55,.1],[.1,.24,.25],[-.06,.30,.3],[.13,.34,.25]][projectIndex];
-   desired.set(shots[0]+Math.sin(p*.5)*.10,portrait?.2:shots[1],portrait?16.2:Math.max(10.8,15.5/(w/h))+shots[2]-p*.18);look.set(0,portrait?.15:-.05,0);
-   turn=Math.max(0,turn-delta*1.6);projectWorlds.update({phase:p,time:elapsed,delta,motion,portrait,turn,index:projectIndex,compact:!portrait&&h<700});
-   if(lastTextureRevision!==demoEngine.revision){projectWorlds.refresh();lastTextureRevision=demoEngine.revision;}
-
-   floor.visible=false;glaze.visible=false;chamber.position.z=-1.2-p*.25-projectIndex*.12;
+   const shot=workshopShot(projectIndex,{portrait,phase:p,aspect:w/h});desired.set(...shot.position);look.set(...shot.target);
+   if(portrait)look.y-=.4;
+   sculpture.position.set(2.15,.57,-1.05);sculpture.scale.setScalar(.65);
   }
-  if(motion)camera.position.lerp(desired,.12);else camera.position.copy(desired);camera.lookAt(look);
-  rim.intensity=mode==='project'?1.7:3;side.intensity=mode==='project'?5:12;dust.rotation.y=elapsed*.004;
-  hero.dataset.scenePhase=p.toFixed(3);hero.dataset.sceneMode=mode;hero.dataset.sceneWorld=mode==='project'?projectWorlds.names[projectIndex]:'Identity';hero.dataset.activeStudy=mode==='project'?String(projectIndex):'-1';
-  bloom.strength=mode==='intro'?.08+energy*.12:.23;
+  floor.visible=mode==='intro'&&!portrait&&p<1.1;glaze.visible=floor.visible;
+  const location=mode==='project'?'project-'+projectIndex:mode;
+  if(location!==lastLocation){
+   if(motion&&frameClock){fromPosition.copy(camera.position);fromLook.copy(lookCurrent);flight={start:now,duration:mode==='project'?1700:1500};}
+   else flight=null;
+   lastLocation=location;
+  }
+  moving=!!flight;
+  if(!motion){flight=null;moving=false;camera.position.copy(desired);lookCurrent.copy(look);}
+  else if(flight){
+   const f=clamp((now-flight.start)/flight.duration),e=f*f*(3-2*f);
+   camera.position.lerpVectors(fromPosition,desired,e);camera.position.y+=Math.sin(f*Math.PI)*(mode==='project'?1.9:.5);lookCurrent.lerpVectors(fromLook,look,e);
+   if(f>=1)flight=null;
+  }else{const follow=1-Math.exp(-delta*7);camera.position.lerp(desired,follow);lookCurrent.lerp(look,follow);}
+  camera.lookAt(lookCurrent);frameClock=now;
+  document.documentElement.toggleAttribute('data-camera-traveling',moving&&mode==='project');
+  workshop.update({time:elapsed,motion,index:mode==='project'?projectIndex:previewStation});
+  turn=Math.max(0,turn-delta*1.6);
+  rim.intensity=mode==='intro'?3:1.7;side.intensity=mode==='intro'?12:5;dust.rotation.y=elapsed*.004;
+  hero.dataset.scenePhase=p.toFixed(3);hero.dataset.sceneMode=mode;hero.dataset.sceneWorld=mode==='project'?projectWorlds.names[projectIndex]:mode==='gateway'?'Workshop overview':'Identity';hero.dataset.activeStudy=mode==='project'?String(projectIndex):'-1';
+  bloom.strength=mode==='intro'?.1+energy*.12:.2;
   composer.render(delta);
   if(!document.documentElement.classList.contains('world-ready'))document.documentElement.classList.add('world-ready');
  }

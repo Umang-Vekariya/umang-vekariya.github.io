@@ -2,7 +2,8 @@ import {initContentHover} from './content-hover.js?v=3';
 import {projectProof} from './project-proof.js';
 import {createProjectPreviews} from './project-previews.js?v=2';
 import {projectStories} from './project-stories.js';
-import {createFlow} from './flow.js?v=14';
+import {createFlow} from './flow.js?v=15';
+import {initWorkshopNav} from './workshop-nav.js?v=1';
 import {demoContent} from './demo-content.js';
 import {createDemoEngine} from './project-demos.js';
 import {profile,projects,experiences,skills,certificates} from './portfolio-data.js';
@@ -97,6 +98,7 @@ function setMotion(value){motionEnabled=value;root.classList.toggle('motion-off'
 $('#motion-toggle').addEventListener('click',()=>setMotion(!motionEnabled));setMotion(motionEnabled);
 const demoEngine=createDemoEngine();
 flow=createFlow(projects,escapeHTML,demoEngine);
+initWorkshopNav(flow);
 let immersiveScroll=0;
 function updateViewButton(){const quick=root.classList.contains('quick-view');$('#view-toggle').setAttribute('aria-pressed',String(quick));$('#view-toggle').innerHTML=(quick?'Immersive view':'Quick view')+' <span>↗</span>';}
 function setView(view,projectId=null){const quick=view==='quick',wasQuick=root.classList.contains('quick-view');if(quick&&!wasQuick)immersiveScroll=scrollY;root.classList.toggle('quick-view',quick);try{sessionStorage.setItem('portfolio-view',quick?'quick':'immersive');}catch{}const url=new URL(location.href);if(quick){url.searchParams.set('view','quick');url.hash='';}else url.searchParams.delete('view');history.replaceState(null,'',url);updateViewButton();dispatchEvent(new CustomEvent('portfolio-view'));requestAnimationFrame(()=>{if(quick)window.scrollTo({top:0,behavior:'instant'});else if(projectId)flow.selectProject(projects.findIndex(p=>p.id===projectId));else window.scrollTo({top:immersiveScroll,behavior:'instant'});});}
@@ -138,6 +140,6 @@ function initLearningLab(){
 }
 let labStarted=false;const labEntry=new IntersectionObserver(entries=>{if(!labStarted&&entries.some(e=>e.isIntersecting)){labStarted=true;initLearningLab();labEntry.disconnect();}},{rootMargin:'250px'});labEntry.observe(document.querySelector('#lab'));
 if(new URL(location.href).searchParams.has('audit'))import('./performance-audit.js').then(m=>m.startPerformanceAudit());
-let worldPromise;function ensureWorld(){if(root.classList.contains('quick-view')||worldPromise)return;worldPromise=new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))).then(()=>import('./world.bundle.js?v=17')).then(({initWorld})=>initWorld(demoEngine)).catch(error=>{console.error('Portfolio scene could not start:',error);root.classList.add('world-fallback');});}addEventListener('portfolio-view',ensureWorld);ensureWorld();
+let worldPromise;function ensureWorld(){if(root.classList.contains('quick-view')||worldPromise)return;worldPromise=new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))).then(()=>import('./world.bundle.js?v=18')).then(({initWorld})=>initWorld(demoEngine)).catch(error=>{console.error('Portfolio scene could not start:',error);root.classList.add('world-fallback');});}addEventListener('portfolio-view',ensureWorld);ensureWorld();
 
 initContentHover();

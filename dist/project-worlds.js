@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {workshopStations} from './workshop-layout.js';
 // Original scene geometry surrounds the live, truthfully labeled project displays.
 export const worldNames=['Signal field','Frame observatory','Resilience stack','Compiler workbench','Responsive desk','Reconstruction arcade','Decision gates','Campus constellation'];
 export function createProjectWorlds({scene,texture,box,chrome,graphite,red,engine}){
@@ -103,12 +104,34 @@ export function createProjectWorlds({scene,texture,box,chrome,graphite,red,engin
   const waiting=[];for(let i=0;i<5;i++){const token=ball(.07,copper);token.position.set(2.67,-.8-i*.26,.25);w.root.add(token);waiting.push(token);}
   w.tick=()=>{const q=engine.states.clubsphere.bookings;seats.forEach((s,i)=>s.material=i<q.booked.length?mint:chrome);waiting.forEach((s,i)=>s.visible=i<q.waiting.length);};
  }
- let active=-1;
- function select(index){if(active===index)return;active=index;worlds.forEach((w,i)=>w.root.visible=i===index);}
- return {names:worldNames,select,get screens(){return worlds[active]?.screens||[];},refresh(){texture.needsUpdate=true;extraTextures.forEach(t=>t.needsUpdate=true);},update({phase,time,delta,motion,portrait,turn,index,compact=false}){
-  select(index);const w=worlds[index],p=Math.min(2.6,phase),enter=motion?Math.sin(turn*Math.PI):0;
-  w.root.position.set(portrait?0:1.96,portrait?(index===5?2.0:2.10):(compact?(index===5?-.23:-.12):(index===5?-.15:.10)),-.13-enter*.5);w.root.scale.setScalar(portrait?w.phoneScale:(compact?(index===5?.63:.86):(index===5?.76:1)));
-  w.root.rotation.set(-.01,-.065+(motion?Math.sin(p*.8)*.035:0)+enter*.18,-.012+(motion?Math.sin(p)*.009:0));
-  w.pose({p,time,motion,delta});w.tick({p,time,motion,delta});w.screens.forEach(s=>s.material.opacity=1-enter*.32);
- },setVisible(value){worlds.forEach((w,i)=>w.root.visible=value&&i===active);}};
+ // Screens retain their live texture, including the compiler's cropped pair.
+ const posters=workshopStations.map((station,index)=>{
+  const c=document.createElement('canvas');c.width=1200;c.height=760;const x=c.getContext('2d');
+  x.fillStyle='#101b20';x.fillRect(0,0,1200,760);x.strokeStyle='#25393d';x.lineWidth=1;
+  for(let i=0;i<1200;i+=60){x.beginPath();x.moveTo(i,0);x.lineTo(i,760);x.stroke();}
+  for(let i=0;i<760;i+=60){x.beginPath();x.moveTo(0,i);x.lineTo(1200,i);x.stroke();}
+  x.fillStyle='#d18362';x.font='24px monospace';x.fillText('UMANG / WORKSHOP / '+String(index+1).padStart(2,'0'),65,78);
+  x.fillStyle='#e7e2d3';x.font='500 60px sans-serif';x.fillText(station.name,65,168);
+  x.fillStyle='#8eb2af';x.font='21px monospace';x.fillText(station.area,65,218);
+  const stages=['OBSERVE','BUILD','EXPLORE'];
+  stages.forEach((t,i)=>{const px=100+i*360;x.strokeStyle=i===index%3?'#e28560':'#536b6a';x.strokeRect(px,340,280,150);x.fillStyle='#c5d7cf';x.font='25px monospace';x.fillText(t,px+32,422);if(i<2){x.beginPath();x.moveTo(px+280,415);x.lineTo(px+350,415);x.stroke();}});
+  x.fillStyle='#7d9896';x.font='22px monospace';x.fillText('APPROACH TO OPEN THE INTERACTIVE STUDY',65,672);
+  const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;return map;
+ });
+ worlds.forEach((w,i)=>{
+  const s=workshopStations[i];w.root.position.set(s.x,0,s.z);w.root.scale.setScalar(i===5?.76:1);w.root.visible=true;
+  w.screens.forEach(screen=>{screen.userData.liveMap=screen.material.map;screen.material.map=posters[i];screen.material.opacity=1;});
+ });
+ let active=-1,enabled=true;
+ function select(index){if(active===index)return;active=index;worlds.forEach((w,i)=>w.screens.forEach(s=>{s.material.map=i===index?s.userData.liveMap:posters[i];s.material.needsUpdate=true;}));}
+ return {names:worldNames,select,get screens(){return worlds[active]?.screens||[];},refresh(){texture.needsUpdate=true;extraTextures.forEach(t=>t.needsUpdate=true);},update({phase,time,delta,motion,portrait,index,compact=false,narrow=false}){
+  select(index);worlds.forEach((w,i)=>{
+   const s=workshopStations[i],chosen=i===index;
+   w.root.visible=enabled;w.root.position.set(s.x,chosen&&portrait?(i===5?2.0:2.10):0,s.z);
+   w.root.scale.setScalar(chosen&&portrait?w.phoneScale:((compact||narrow)&&chosen?(i===5?.63:.86):(i===5?.76:1)));
+   const facing=s.x<0?Math.PI/2:-Math.PI/2;
+   w.root.rotation.set(0,facing+(chosen?-.045+(motion?Math.sin(phase*.8)*.02:0):0),0);
+   if(chosen){w.pose({p:phase,time,motion,delta});w.tick({p:phase,time,motion,delta});}
+  });
+ },setVisible(value){enabled=value;worlds.forEach(w=>w.root.visible=value);}};
 }
