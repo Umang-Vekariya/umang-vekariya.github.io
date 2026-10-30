@@ -14,7 +14,7 @@ export function initNeuralStudio(){
  const canvas=$('#studio-canvas'),ctx=canvas.getContext('2d'),loss=$('#studio-loss'),lc=loss.getContext('2d'),wires=$('#studio-wires'),wc=wires.getContext('2d');
  if(!ctx||!lc||!wc)return;
  const worker=new Worker(new URL('./neural-worker.js?v=1',import.meta.url),{type:'module'});
- const heat=document.createElement('canvas');heat.width=84;heat.height=84;const hc=heat.getContext('2d'),image=hc.createImageData(84,84),fieldValues=new Float32Array(84*84);
+ const heat=document.createElement('canvas');heat.width=128;heat.height=128;const hc=heat.getContext('2d'),image=hc.createImageData(128,128),fieldValues=new Float32Array(128*128);
  let pattern='spiral',data=makeExperiment('spiral'),testing=data.testing,network=new NeuralNetwork(42,6),seed=42,version=0,epoch=0,running=false,visible=false,width=6,rate=.025,tool='probe',showTest=false,noise=0,selected=null,w=0,h=0,probe={x:0,y:0,active:false},lastPoint=null,drawing=false,strokeStart=0,strokes=[],features=[],history=[],lastHistoryEpoch=-1,queued=false,workerFailed=false;
  const palette={a:[174,211,194],b:[231,151,115]};
  const percentage=v=>v===null?'—':Math.round(v*100)+'%';
@@ -44,15 +44,26 @@ export function initNeuralStudio(){
  function render(){
   if(!w||!h)return;
   ctx.fillStyle='#0c171c';ctx.fillRect(0,0,w,h);
-  for(let iy=0;iy<84;iy++)for(let ix=0;ix<84;ix++){
-   const x=ix/83*2-1,y=1-iy/83*2,raw=selected?network.activation(x,y,selected.layer,selected.index):network.forward(x,y),p=selected?(raw+1)/2:raw,confidence=Math.abs(p-.5)*2,ixy=iy*84+ix,i=ixy*4;
+  for(let iy=0;iy<128;iy++)for(let ix=0;ix<128;ix++){
+   const x=ix/127*2-1,y=1-iy/127*2,raw=selected?network.activation(x,y,selected.layer,selected.index):network.forward(x,y),p=selected?(raw+1)/2:raw,confidence=Math.abs(p-.5)*2,ixy=iy*128+ix,i=ixy*4;
    fieldValues[ixy]=p;
    for(let k=0;k<3;k++){const col=palette.a[k]*(1-p)+palette.b[k]*p;image.data[i+k]=Math.round([14,25,29][k]+col*(.035+.25*confidence));}image.data[i+3]=255;
   }
   hc.putImageData(image,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(heat,38,38,w-76,h-76);
   ctx.lineWidth=.6;ctx.strokeStyle='#bbd8ce0c';for(let i=0;i<=8;i++){const v=38+i/8*(w-76),u=38+i/8*(h-76);ctx.beginPath();ctx.moveTo(v,38);ctx.lineTo(v,h-38);ctx.moveTo(38,u);ctx.lineTo(w-38,u);ctx.stroke();}
-  // Trace the actual p=0.5 decision edge, rather than a decorative animation.
-  if(!selected){ctx.beginPath();for(let iy=0;iy<83;iy++)for(let ix=0;ix<83;ix++){const p=fieldValues[iy*84+ix]>=.5,x=38+ix/83*(w-76),y=38+iy/83*(h-76),dx=(w-76)/83,dy=(h-76)/83;if(p!==(fieldValues[iy*84+ix+1]>=.5)){ctx.moveTo(x+dx/2,y);ctx.lineTo(x+dx/2,y+dy);}if(p!==(fieldValues[(iy+1)*84+ix]>=.5)){ctx.moveTo(x,y+dy/2);ctx.lineTo(x+dx,y+dy/2);}}ctx.strokeStyle='#d9d5bb70';ctx.lineWidth=.8;ctx.stroke();}
+  // Interpolate the p=0.5 contour between samples so the boundary stays smooth.
+  if(!selected){
+   const dx=(w-76)/127,dy=(h-76)/127;ctx.beginPath();
+   for(let iy=0;iy<127;iy++)for(let ix=0;ix<127;ix++){
+    const x=38+ix*dx,y=38+iy*dy;
+    const values=[fieldValues[iy*128+ix],fieldValues[iy*128+ix+1],fieldValues[(iy+1)*128+ix+1],fieldValues[(iy+1)*128+ix]];
+    const corners=[[x,y],[x+dx,y],[x+dx,y+dy],[x,y+dy]],crossings=[];
+    for(let a=0;a<4;a++){const b=(a+1)%4;if((values[a]>=.5)===(values[b]>=.5))continue;const t=(.5-values[a])/(values[b]-values[a]);crossings.push([corners[a][0]+t*(corners[b][0]-corners[a][0]),corners[a][1]+t*(corners[b][1]-corners[a][1])]);}
+    if(crossings.length===2){ctx.moveTo(...crossings[0]);ctx.lineTo(...crossings[1]);}
+    else if(crossings.length===4){const same=(values[0]>=.5)===(values.reduce((a,b)=>a+b,0)/4>=.5),pairs=same?[[0,1],[2,3]]:[[0,3],[1,2]];for(const [a,b] of pairs){ctx.moveTo(...crossings[a]);ctx.lineTo(...crossings[b]);}}
+   }
+   ctx.strokeStyle='#ddd9c48c';ctx.lineWidth=1;ctx.stroke();
+  }
   const samples=showTest?testing:data.training;
   for(const p of samples){const [x,y]=pointToPixel(p);ctx.beginPath();ctx.arc(x,y,showTest?3.5:2.8,0,Math.PI*2);ctx.fillStyle=p.label?'#e9a17d':'#bfdbcc';ctx.strokeStyle=p.label?'#e9a17d':'#bfdbcc';ctx.lineWidth=showTest?1.35:1;
    if(showTest)ctx.stroke();else{ctx.fill();ctx.strokeStyle='#101b20';ctx.stroke();}

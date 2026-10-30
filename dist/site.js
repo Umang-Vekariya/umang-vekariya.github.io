@@ -116,7 +116,7 @@ addEventListener('scroll',()=>{if(!scrollFrame){scrollFrame=true;requestAnimatio
 
 
 // Load the interactive studio only as the visitor approaches it.
-let labStarted=false;const labEntry=new IntersectionObserver(entries=>{if(!labStarted&&entries.some(e=>e.isIntersecting)){labStarted=true;import('./neural-studio.js?v=1').then(({initNeuralStudio})=>initNeuralStudio()).catch(error=>{console.error('Neural studio could not start:',error);document.querySelector('#studio-insight').textContent='The experiment could not load. Refresh the page to try again.';});labEntry.disconnect();}},{rootMargin:'250px'});labEntry.observe(document.querySelector('#lab'));
+let labStarted=false;const labEntry=new IntersectionObserver(entries=>{if(!labStarted&&entries.some(e=>e.isIntersecting)){labStarted=true;import('./neural-studio.js?v=2').then(({initNeuralStudio})=>initNeuralStudio()).catch(error=>{console.error('Neural studio could not start:',error);document.querySelector('#studio-insight').textContent='The experiment could not load. Refresh the page to try again.';});labEntry.disconnect();}},{rootMargin:'250px'});labEntry.observe(document.querySelector('#lab'));
 if(new URL(location.href).searchParams.has('audit'))import('./performance-audit.js').then(m=>m.startPerformanceAudit());
 let worldPromise;function ensureWorld(){if(root.classList.contains('quick-view')||worldPromise)return;worldPromise=new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))).then(()=>import('./world.bundle.js?v=22')).then(({initWorld})=>initWorld(demoEngine)).catch(error=>{console.error('Portfolio scene could not start:',error);root.classList.add('world-fallback');});}addEventListener('portfolio-view',ensureWorld);ensureWorld();
 
