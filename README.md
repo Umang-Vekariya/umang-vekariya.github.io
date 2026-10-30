@@ -30,3 +30,9 @@ The original private Sites checkout and the pre-workshop snapshot remain separat
 Small personal-installation labels use `spatial-type.js` to position native browser text from 3D anchors. This keeps glyph proportions and clarity independent of the WebGL resolution. Education stays on the right; the experience installation sits on the left with its supporting copy opposite it. The desktop overview reading layer is fixed while its scene is active.
 
 The finishing pass uses a dark matte floor, sparse low-contrast floor joints, and subdued architectural guide lights. A soft spotlight follows the personal installations continuously; the selected project station receives a brighter work light. Intro lighting blends into the foyer without a mode-switch flash, and the opening pedestal lowers out of the overview. Duplicate labels are removed where the browser interface already supplies them.
+
+## Neural studio
+
+The playground is now a browser-only teaching experiment: draw labeled examples with pointer or keyboard, inspect hidden-neuron activation fields, change network width, and compare training accuracy with a separate unseen set. The default intertwined spirals, circles, and moons each use 120 training examples and 80 independently generated test examples. Noise affects only the test examples and pauses training for comparison. Blank drawings have no fabricated test score. Undo removes a complete stroke; resetting weights preserves examples.
+
+`neural-studio.js` owns the interface and inference views; `neural-worker.js` trains off the main thread and suspends while the studio is offscreen or the tab is hidden. `model.js` implements the tanh network and backpropagation. Tests check gradients, generalization, snapshot parity, test-data immutability, and worker resets.

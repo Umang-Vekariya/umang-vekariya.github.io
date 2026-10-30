@@ -7,7 +7,7 @@ import {initWorkshopNav} from './workshop-nav.js?v=1';
 import {demoContent} from './demo-content.js';
 import {createDemoEngine} from './project-demos.js';
 import {profile,projects,experiences,skills,certificates} from './portfolio-data.js?v=2';
-import {NeuralNetwork,createDataset} from './model.js';
+
 
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -115,31 +115,8 @@ function updateProgress(){const range=document.documentElement.scrollHeight-inne
 addEventListener('scroll',()=>{if(!scrollFrame){scrollFrame=true;requestAnimationFrame(updateProgress);}},{passive:true});updateProgress();
 
 
-// Real browser-based neural-network experiment.
-function initLearningLab(){
-  const canvas=$('#decision-canvas'),ctx=canvas.getContext('2d'),lossCanvas=$('#loss-canvas'),lossContext=lossCanvas.getContext('2d');if(!ctx||!lossContext)return;
-  const heatCanvas=document.createElement('canvas');heatCanvas.width=90;heatCanvas.height=75;const heatContext=heatCanvas.getContext('2d'),heatImage=heatContext.createImageData(90,75);
-  let dataset='circles',points=createDataset(dataset),network=new NeuralNetwork(42),epoch=0,running=false,visible=false,lastDraw=0,history=[],w=0,h=0,modelSeed=42,rate=.03;
-  function resize(){const r=canvas.parentElement.getBoundingClientRect(),d=Math.min(devicePixelRatio,1.5);w=r.width;h=r.height;canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);const lr=lossCanvas.getBoundingClientRect();lossCanvas.width=lr.width*d;lossCanvas.height=lr.height*d;lossContext.setTransform(d,0,0,d,0,0);render();drawLoss();}
-  function updateMetrics(){const metrics=network.evaluate(points);$('#epoch-value').textContent=String(epoch).padStart(4,'0');$('#loss-value').textContent=metrics.loss.toFixed(4);$('#accuracy-value').textContent=Math.round(metrics.accuracy*100)+'%';history.push(metrics.loss);if(history.length>250)history.shift();drawLoss();}
-  function drawLoss(){const rect=lossCanvas.getBoundingClientRect(),cw=rect.width,ch=rect.height;lossContext.clearRect(0,0,cw,ch);lossContext.strokeStyle='#b8c6a211';lossContext.lineWidth=1;for(let i=1;i<4;i++){lossContext.beginPath();lossContext.moveTo(0,ch*i/4);lossContext.lineTo(cw,ch*i/4);lossContext.stroke();}if(history.length<2)return;const max=Math.max(.1,...history);lossContext.beginPath();history.forEach((value,i)=>{const x=i/(history.length-1)*cw,y=ch-5-value/max*(ch-10);i?lossContext.lineTo(x,y):lossContext.moveTo(x,y);});lossContext.strokeStyle='#ee4e3b';lossContext.lineWidth=1.5;lossContext.stroke();}
-  function render(){
-    if(!w||!h)return;
-    for(let iy=0;iy<75;iy++){for(let ix=0;ix<90;ix++){const x=((ix/89*w-42)/(w-84))*2-1,y=1-((iy/74*h-42)/(h-84))*2,p=network.forward(x,y),i=(iy*90+ix)*4;heatImage.data[i]=Math.round(31+p*64);heatImage.data[i+1]=Math.round(34-p*15);heatImage.data[i+2]=Math.round(35-p*14);heatImage.data[i+3]=255;}}
-    heatContext.putImageData(heatImage,0,0);ctx.drawImage(heatCanvas,0,0,w,h);ctx.strokeStyle='#c8d6af12';ctx.lineWidth=.5;
-    for(let i=1;i<10;i++){ctx.beginPath();ctx.moveTo(w*i/10,0);ctx.lineTo(w*i/10,h);ctx.stroke();ctx.beginPath();ctx.moveTo(0,h*i/10);ctx.lineTo(w,h*i/10);ctx.stroke();}
-    const pad=42;for(const point of points){const x=pad+(point.x+1)*.5*(w-pad*2),y=pad+(1-point.y)*.5*(h-pad*2);ctx.beginPath();ctx.arc(x,y,3.1,0,Math.PI*2);ctx.fillStyle=point.label?'#f06b54':'#e5e8d5';ctx.fill();ctx.strokeStyle=point.label?'#4b2117':'#26321c';ctx.lineWidth=1.3;ctx.stroke();}
-  }
-  function setRunning(value){running=value;$('#train-button').innerHTML=value?'<span>Ⅱ</span> PAUSE TRAINING':'<span>▶</span> '+(epoch?'RESUME TRAINING':'TRAIN THE MODEL');$('#train-button').classList.toggle('training',value);$('#surface-status').textContent=value?'LEARNING IN REAL TIME':epoch?'TRAINING PAUSED':'AWAITING TRAINING';$('#lab-status').textContent=(value?'TRAINING':epoch?'PAUSED':'READY')+' / 200 TRAINING SAMPLES';}
-  function reset(){network=new NeuralNetwork(++modelSeed);epoch=0;history=[];setRunning(false);updateMetrics();render();}
-  $('#train-button').addEventListener('click',()=>setRunning(!running));$('#reset-model').addEventListener('click',reset);
-  $$('[data-dataset]').forEach(b=>b.addEventListener('click',()=>{dataset=b.dataset.dataset;points=createDataset(dataset,42);$$('[data-dataset]').forEach(o=>o.setAttribute('aria-pressed',String(o===b)));reset();}));
-  $('#learning-rate').addEventListener('input',e=>{rate=Number(e.target.value)*.01;$('#learning-rate-value').textContent=rate.toFixed(3);});
-  new ResizeObserver(resize).observe(canvas.parentElement);new IntersectionObserver(e=>{visible=e[0].isIntersecting;}).observe(canvas.closest('.learning-lab'));
-  function frame(time){if(running&&visible&&!document.hidden){for(let n=0;n<3;n++){network.trainEpoch(points,rate);epoch++;}if(time-lastDraw>150){lastDraw=time;updateMetrics();render();}if(epoch>=5000){setRunning(false);updateMetrics();render();$('#surface-status').textContent='5000 EPOCHS / EXPERIMENT COMPLETE';}}requestAnimationFrame(frame);}
-  resize();updateMetrics();requestAnimationFrame(frame);
-}
-let labStarted=false;const labEntry=new IntersectionObserver(entries=>{if(!labStarted&&entries.some(e=>e.isIntersecting)){labStarted=true;initLearningLab();labEntry.disconnect();}},{rootMargin:'250px'});labEntry.observe(document.querySelector('#lab'));
+// Load the interactive studio only as the visitor approaches it.
+let labStarted=false;const labEntry=new IntersectionObserver(entries=>{if(!labStarted&&entries.some(e=>e.isIntersecting)){labStarted=true;import('./neural-studio.js?v=1').then(({initNeuralStudio})=>initNeuralStudio()).catch(error=>{console.error('Neural studio could not start:',error);document.querySelector('#studio-insight').textContent='The experiment could not load. Refresh the page to try again.';});labEntry.disconnect();}},{rootMargin:'250px'});labEntry.observe(document.querySelector('#lab'));
 if(new URL(location.href).searchParams.has('audit'))import('./performance-audit.js').then(m=>m.startPerformanceAudit());
 let worldPromise;function ensureWorld(){if(root.classList.contains('quick-view')||worldPromise)return;worldPromise=new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))).then(()=>import('./world.bundle.js?v=22')).then(({initWorld})=>initWorld(demoEngine)).catch(error=>{console.error('Portfolio scene could not start:',error);root.classList.add('world-fallback');});}addEventListener('portfolio-view',ensureWorld);ensureWorld();
 

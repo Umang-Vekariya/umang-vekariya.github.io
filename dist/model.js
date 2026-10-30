@@ -29,21 +29,22 @@ export function createDataset(kind, seed = 42) {
 }
 
 export class NeuralNetwork {
-  constructor(seed = 42) {
-    this.random = randomGenerator(seed); this.width = 12;
+  constructor(seed = 42, width = 12) {
+    this.random = randomGenerator(seed); this.width = Math.max(2, Math.min(16, Math.round(width)));
+    const n = this.width;
     const init = (fanIn, fanOut) => (this.random() * 2 - 1) * Math.sqrt(6 / (fanIn + fanOut));
-    this.w1 = Array.from({length:12}, () => Float64Array.from({length:2}, () => init(2,12)));
-    this.b1 = new Float64Array(12);
-    this.w2 = Array.from({length:12}, () => Float64Array.from({length:12}, () => init(12,12)));
-    this.b2 = new Float64Array(12);
-    this.w3 = Float64Array.from({length:12}, () => init(12,1)); this.b3 = 0;
-    this.h1 = new Float64Array(12); this.h2 = new Float64Array(12);
-    this.d1 = new Float64Array(12); this.d2 = new Float64Array(12);
+    this.w1 = Array.from({length:n}, () => Float64Array.from({length:2}, () => init(2,n)));
+    this.b1 = new Float64Array(n);
+    this.w2 = Array.from({length:n}, () => Float64Array.from({length:n}, () => init(n,n)));
+    this.b2 = new Float64Array(n);
+    this.w3 = Float64Array.from({length:n}, () => init(n,1)); this.b3 = 0;
+    this.h1 = new Float64Array(n); this.h2 = new Float64Array(n);
+    this.d1 = new Float64Array(n); this.d2 = new Float64Array(n);
   }
   forward(x, y) {
-    for (let j=0;j<12;j++) this.h1[j] = Math.tanh(this.w1[j][0]*x + this.w1[j][1]*y + this.b1[j]);
-    for (let k=0;k<12;k++) {let sum=this.b2[k];for(let j=0;j<12;j++)sum+=this.w2[k][j]*this.h1[j];this.h2[k]=Math.tanh(sum);}
-    let sum=this.b3;for(let k=0;k<12;k++)sum+=this.w3[k]*this.h2[k];
+    for (let j=0;j<this.width;j++) this.h1[j] = Math.tanh(this.w1[j][0]*x + this.w1[j][1]*y + this.b1[j]);
+    for (let k=0;k<this.width;k++) {let sum=this.b2[k];for(let j=0;j<this.width;j++)sum+=this.w2[k][j]*this.h1[j];this.h2[k]=Math.tanh(sum);}
+    let sum=this.b3;for(let k=0;k<this.width;k++)sum+=this.w3[k]*this.h2[k];
     return 1/(1+Math.exp(-Math.max(-35,Math.min(35,sum))));
   }
   trainEpoch(points, rate) {
@@ -51,14 +52,27 @@ export class NeuralNetwork {
     for(let i=order.length-1;i>0;i--){const j=Math.floor(this.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
     for(const index of order){
       const point=points[index],error=this.forward(point.x,point.y)-point.label;
-      for(let k=0;k<12;k++)this.d2[k]=error*this.w3[k]*(1-this.h2[k]*this.h2[k]);
-      for(let j=0;j<12;j++){let sum=0;for(let k=0;k<12;k++)sum+=this.d2[k]*this.w2[k][j];this.d1[j]=sum*(1-this.h1[j]*this.h1[j]);}
-      for(let k=0;k<12;k++){this.w3[k]-=rate*error*this.h2[k];this.b2[k]-=rate*this.d2[k];for(let j=0;j<12;j++)this.w2[k][j]-=rate*this.d2[k]*this.h1[j];}
+      for(let k=0;k<this.width;k++)this.d2[k]=error*this.w3[k]*(1-this.h2[k]*this.h2[k]);
+      for(let j=0;j<this.width;j++){let sum=0;for(let k=0;k<this.width;k++)sum+=this.d2[k]*this.w2[k][j];this.d1[j]=sum*(1-this.h1[j]*this.h1[j]);}
+      for(let k=0;k<this.width;k++){this.w3[k]-=rate*error*this.h2[k];this.b2[k]-=rate*this.d2[k];for(let j=0;j<this.width;j++)this.w2[k][j]-=rate*this.d2[k]*this.h1[j];}
       this.b3-=rate*error;
-      for(let j=0;j<12;j++){this.w1[j][0]-=rate*this.d1[j]*point.x;this.w1[j][1]-=rate*this.d1[j]*point.y;this.b1[j]-=rate*this.d1[j];}
+      for(let j=0;j<this.width;j++){this.w1[j][0]-=rate*this.d1[j]*point.x;this.w1[j][1]-=rate*this.d1[j]*point.y;this.b1[j]-=rate*this.d1[j];}
     }
   }
+  snapshot() {
+    return {width:this.width,w1:this.w1.map(row=>Array.from(row)),b1:Array.from(this.b1),w2:this.w2.map(row=>Array.from(row)),b2:Array.from(this.b2),w3:Array.from(this.w3),b3:this.b3};
+  }
+  restore(state) {
+    if(state.width!==this.width)throw new Error('Network widths do not match');
+    this.w1.forEach((row,i)=>row.set(state.w1[i]));this.b1.set(state.b1);
+    this.w2.forEach((row,i)=>row.set(state.w2[i]));this.b2.set(state.b2);this.w3.set(state.w3);this.b3=state.b3;
+  }
+  activation(x,y,layer,index) {
+    const prediction=this.forward(x,y);
+    return layer===1?this.h1[index]:layer===2?this.h2[index]:prediction;
+  }
   evaluate(points) {
+    if(!points.length)return {loss:null,accuracy:null};
     let loss=0,correct=0;
     for(const point of points){const p=Math.max(1e-9,Math.min(1-1e-9,this.forward(point.x,point.y)));loss-=point.label*Math.log(p)+(1-point.label)*Math.log(1-p);if((p>=0.5?1:0)===point.label)correct++;}
     return {loss:loss/points.length,accuracy:correct/points.length};
