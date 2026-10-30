@@ -33,7 +33,6 @@ export function createProfileFoyer({scene,box,font,chrome,graphite,red,spatialTy
    label(root,['AI & vision','Systems','Languages'][i],v[0],v[1]-.6,.4,1.9);
   }
   for(let i=0;i<2;i++){const orbit=ring(1.04+i*.18,i?warm:mint);orbit.position.set(0,.3,.2);orbit.rotation.set(.4+i*.8,.35*i,0);root.add(orbit);orbital.push(orbit);}
-  label(root,'Mumbai → Vellore',0,-1.91,.25,4.6);
  }
  // The academic record is physical type, paired with the tools used in the work.
  {

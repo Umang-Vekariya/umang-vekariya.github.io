@@ -1,13 +1,14 @@
 /* A continuous space: introduction → floor plan → working installations. */
+.workshop-arrival{--workshop-accent:#dfa384;--workshop-ink:#eee7db}
 .journey{height:340svh}.journey-vignette{background:linear-gradient(90deg,#080e13c9,transparent 57%),linear-gradient(#080e1322,transparent 55%,#080e13ba)}
 .opening-kicker{top:20%}.opening-philosophy{color:#ded4c6!important}.opening-note{color:#abb7b3}.opening-caption>a:hover>span{background:#e78564}
 #project-overview{height:190svh;padding:0;background:transparent;border:0;position:relative;z-index:2;scroll-margin-top:0}
 .workshop-arrival{position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate}
 .workshop-arrival:before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#080e13f0, #080e13b5 29%,transparent 70%),linear-gradient(transparent 65%,#080e13d9);pointer-events:none}
 .workshop-copy{position:absolute;left:6%;top:24%;width:35%;max-width:570px}
-.workshop-copy>.eyebrow{font:10px var(--mono);color:#e99b78;letter-spacing:1.4px}
-.project-lead .workshop-copy h2{font:500 clamp(52px,6.3vw,100px)/.99 var(--display);letter-spacing:-.07em;color:#ede4d6;margin:28px 0}
-.project-lead .workshop-copy h2 em{color:#91a8a5;font:inherit}
+.workshop-copy>.eyebrow{font:10px var(--mono);color:var(--workshop-accent);letter-spacing:1.4px}
+.project-lead .workshop-copy h2{font:500 clamp(52px,6.3vw,100px)/.99 var(--display);letter-spacing:-.055em;color:var(--workshop-ink);margin:28px 0}
+.project-lead .workshop-copy h2 em{color:#b9c9c3;font:inherit}
 .workshop-copy>p:not(.eyebrow){font-size:16px;line-height:1.8;color:#c1c6bc;max-width:380px}
 .workshop-copy>button{margin-top:27px;display:flex;align-items:center;gap:40px;background:#e7ded0;color:#101719;padding:15px 20px;border-radius:2px;font-size:12px}
 .workshop-copy>button:hover{background:#ed9b77}.workshop-copy>button>span{font-size:20px}

@@ -28,3 +28,5 @@ The GitHub Pages workflow publishes `dist/` when `main` changes. The built scene
 The original private Sites checkout and the pre-workshop snapshot remain separate backups on the owner's computer.
 
 Small personal-installation labels use `spatial-type.js` to position native browser text from 3D anchors. This keeps glyph proportions and clarity independent of the WebGL resolution. Education stays on the right; the experience installation sits on the left with its supporting copy opposite it. The desktop overview reading layer is fixed while its scene is active.
+
+The finishing pass uses a dark matte floor, sparse low-contrast floor joints, and subdued architectural guide lights. A soft spotlight follows the personal installations continuously; the selected project station receives a brighter work light. Intro lighting blends into the foyer without a mode-switch flash, and the opening pedestal lowers out of the overview. Duplicate labels are removed where the browser interface already supplies them.

@@ -141,6 +141,6 @@ function initLearningLab(){
 }
 let labStarted=false;const labEntry=new IntersectionObserver(entries=>{if(!labStarted&&entries.some(e=>e.isIntersecting)){labStarted=true;initLearningLab();labEntry.disconnect();}},{rootMargin:'250px'});labEntry.observe(document.querySelector('#lab'));
 if(new URL(location.href).searchParams.has('audit'))import('./performance-audit.js').then(m=>m.startPerformanceAudit());
-let worldPromise;function ensureWorld(){if(root.classList.contains('quick-view')||worldPromise)return;worldPromise=new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))).then(()=>import('./world.bundle.js?v=21')).then(({initWorld})=>initWorld(demoEngine)).catch(error=>{console.error('Portfolio scene could not start:',error);root.classList.add('world-fallback');});}addEventListener('portfolio-view',ensureWorld);ensureWorld();
+let worldPromise;function ensureWorld(){if(root.classList.contains('quick-view')||worldPromise)return;worldPromise=new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))).then(()=>import('./world.bundle.js?v=22')).then(({initWorld})=>initWorld(demoEngine)).catch(error=>{console.error('Portfolio scene could not start:',error);root.classList.add('world-fallback');});}addEventListener('portfolio-view',ensureWorld);ensureWorld();
 
 initContentHover();

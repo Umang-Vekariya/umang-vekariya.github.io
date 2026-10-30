@@ -30,7 +30,6 @@ export function createProjectWorlds({scene,texture,box,chrome,graphite,red,engin
   const grid=new THREE.GridHelper(5.6,16,0x934c39,0x283f40);grid.rotation.x=Math.PI/2;grid.position.z=-.2;p.add(grid);
   const pins=[],rings=[];
   for(let i=0;i<7;i++){const stem=cylinder(.027,.3,copper);stem.rotation.x=Math.PI/2;const cap=ball(.06,ivory),r=ring(.23,mint,.008);p.add(stem,cap,r);pins.push({stem,cap});rings.push(r);}
-  const rail=label('WNAMS / POSITION → SIGNAL → COVERAGE',4.5,.24);rail.position.set(0,-1.92,.05);p.add(rail);
   w.tick=({p:phase,time,motion})=>{const s=engine.states.wnams.samples;for(let i=0;i<7;i++){const sample=s[i],pin=pins[i];pin.stem.visible=pin.cap.visible=rings[i].visible=!!sample;if(!sample)continue;const x=((390+sample.x*770)/1200-.5)*5,y=(.5-(155+sample.y*510)/760)*3.1667;pin.stem.position.set(x,y,.17);pin.cap.position.set(x,y,.34);rings[i].position.set(x,y,.025);const size=phase>.4?1+(motion?(time*.3+i*.14)%1:0):.65;rings[i].scale.setScalar(size);}}
   w.pose=({p:phase,time,motion})=>{p.rotation.x=-.36+Math.min(phase,2)*.035;p.rotation.z=motion?Math.sin(time*.12)*.012:0;};
  }

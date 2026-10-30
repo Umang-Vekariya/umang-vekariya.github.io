@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {createWorkshop} from './workshop-architecture.js';
 import {workshopShot} from './workshop-layout.js';
-import {profileRail,profileStops,smoother} from './profile-layout.js';
+import {profileRail,profileStops,profileWeight,smoother} from './profile-layout.js';
 import {createProfileFoyer} from './profile-foyer.js';
 import {createSpatialType} from './spatial-type.js';
 import {createProjectWorlds} from './project-worlds.js';
@@ -60,6 +60,10 @@ export async function initWorld(demoEngine){
  const font=await new FontLoader().loadAsync('./assets/helvetiker_bold.typeface.json');
  const spatialType=createSpatialType(hero);
  const profileFoyer=createProfileFoyer({scene,box,font,chrome,graphite,red,spatialType});
+ // A single soft key follows the overview instead of flooding every wall and the floor.
+ const profileLight=new THREE.SpotLight(0xffe6ce,0,18,.62,1,2);
+ const profileLightTarget=new THREE.Object3D();scene.add(profileLight,profileLightTarget);profileLight.target=profileLightTarget;
+ const profileFocus=new THREE.Vector3(),profileAnchor=new THREE.Vector3();
  const identity=new THREE.Group();scene.add(identity);
  const nameMaterial=new THREE.MeshPhysicalMaterial({color:0xe1ddd1,metalness:.38,roughness:.27,clearcoat:.3,transparent:true});
  const nameSide=new THREE.MeshStandardMaterial({color:0x4b4540,metalness:.9,roughness:.22,transparent:true});
@@ -179,11 +183,17 @@ export async function initWorld(demoEngine){
   }else{const follow=1-Math.exp(-delta*7);camera.position.lerp(desired,follow);lookCurrent.lerp(look,follow);}
   camera.lookAt(lookCurrent);frameClock=now;
   document.documentElement.toggleAttribute('data-camera-traveling',moving&&mode==='project');
-  workshop.update({time:elapsed,motion,delta,showProjects,index:mode==='project'?projectIndex:previewStation});
+  workshop.update({time:elapsed,motion,delta,showProjects,identityWeight:sculptureAlpha,index:mode==='project'?projectIndex:previewStation});
   turn=Math.max(0,turn-delta*1.6);
-  rim.intensity=mode==='intro'?3:1.7;side.intensity=mode==='intro'?12:5;dust.rotation.y=elapsed*.004;
+  const introLight=1-smoother(.05,.7,profileEntry),focusPhase=mode==='intro'?0:mode==='gateway'?2.65:p;
+  key.intensity=1.1+.9*introLight;rim.intensity=.85+2.15*introLight;side.intensity=3+9*introLight;high.intensity=6+6*introLight;
+  scene.environmentIntensity=.32+.23*introLight;
+  profileFocus.set(0,0,0);profileFoyer.anchors.forEach((anchor,i)=>{anchor.getWorldPosition(profileAnchor);profileFocus.addScaledVector(profileAnchor,profileWeight(i,focusPhase));});
+  profileLightTarget.position.copy(profileFocus);profileLight.position.copy(profileFocus).add(profileAnchor.set(-1.4,4,5));
+  profileLight.intensity=45*smoother(.3,.8,profileEntry)*(1-gatewayEntry);profileLight.visible=profileFoyer.root.visible;
+  dust.material.opacity=.14+.21*introLight;dust.rotation.y=elapsed*.004;
   hero.dataset.scenePhase=p.toFixed(3);hero.dataset.sceneMode=mode;hero.dataset.sceneWorld=mode==='project'?projectWorlds.names[projectIndex]:mode==='gateway'?'Workshop overview':mode==='profile'?profileStops[profileIndex].label:'Identity';hero.dataset.activeStudy=mode==='project'?String(projectIndex):'-1';
-  bloom.strength=mode==='intro'?.1+energy*.12:.2;
+  bloom.strength=mode==='intro'?.1+energy*.12:.12;
   composer.render(delta);
   spatialType.render(camera,{width:w,height:h,visible:profileEntry>.001&&gatewayEntry<.999});
   if(!document.documentElement.classList.contains('world-ready'))document.documentElement.classList.add('world-ready');
