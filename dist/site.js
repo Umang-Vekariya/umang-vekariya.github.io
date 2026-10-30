@@ -2,11 +2,11 @@ import {initContentHover} from './content-hover.js?v=3';
 import {projectProof} from './project-proof.js';
 import {createProjectPreviews} from './project-previews.js?v=2';
 import {projectStories} from './project-stories.js';
-import {createFlow} from './flow.js?v=16';
+import {createFlow} from './flow.js?v=17';
 import {initWorkshopNav} from './workshop-nav.js?v=1';
 import {demoContent} from './demo-content.js';
 import {createDemoEngine} from './project-demos.js';
-import {profile,projects,experiences,skills,certificates} from './portfolio-data.js';
+import {profile,projects,experiences,skills,certificates} from './portfolio-data.js?v=2';
 import {NeuralNetwork,createDataset} from './model.js';
 
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -40,7 +40,7 @@ function projectArt(project){
 
 $('#year').textContent=new Date().getFullYear();
 $('#skills-grid').innerHTML=skills.map(group=>`<div class="skill-group"><h4>${escapeHTML(group.name.toUpperCase())}</h4><div class="skill-tags">${group.items.map(item=>`<span>${escapeHTML(item)}</span>`).join('')}</div></div>`).join('');
-$('#experience-list').innerHTML=experiences.map(e=>`<article class="experience-item"><p class="eyebrow">${escapeHTML(e.dates)}</p><h3>${escapeHTML(e.title)}</h3><p class="organization">${escapeHTML(e.organization)}</p><p>${escapeHTML(e.text)}</p></article>`).join('');
+$('#experience-list').innerHTML=experiences.map(e=>`<article class="experience-item"><p class="eyebrow">${escapeHTML(e.dates)}</p><h3>${escapeHTML(e.title)}</h3><p class="organization">${escapeHTML(e.organization)}</p><p>${escapeHTML(e.summary||e.text)}</p></article>`).join('');
 $('#certificate-list').innerHTML=certificates.map(c=>`<li>${escapeHTML(c)}</li>`).join('');
 
 let previewController;
@@ -141,6 +141,6 @@ function initLearningLab(){
 }
 let labStarted=false;const labEntry=new IntersectionObserver(entries=>{if(!labStarted&&entries.some(e=>e.isIntersecting)){labStarted=true;initLearningLab();labEntry.disconnect();}},{rootMargin:'250px'});labEntry.observe(document.querySelector('#lab'));
 if(new URL(location.href).searchParams.has('audit'))import('./performance-audit.js').then(m=>m.startPerformanceAudit());
-let worldPromise;function ensureWorld(){if(root.classList.contains('quick-view')||worldPromise)return;worldPromise=new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))).then(()=>import('./world.bundle.js?v=19')).then(({initWorld})=>initWorld(demoEngine)).catch(error=>{console.error('Portfolio scene could not start:',error);root.classList.add('world-fallback');});}addEventListener('portfolio-view',ensureWorld);ensureWorld();
+let worldPromise;function ensureWorld(){if(root.classList.contains('quick-view')||worldPromise)return;worldPromise=new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))).then(()=>import('./world.bundle.js?v=20')).then(({initWorld})=>initWorld(demoEngine)).catch(error=>{console.error('Portfolio scene could not start:',error);root.classList.add('world-fallback');});}addEventListener('portfolio-view',ensureWorld);ensureWorld();
 
 initContentHover();

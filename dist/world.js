@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {createWorkshop} from './workshop-architecture.js';
 import {workshopShot} from './workshop-layout.js';
-import {profileShot,profileStops} from './profile-layout.js';
+import {profileRail,profileStops,smoother} from './profile-layout.js';
 import {createProfileFoyer} from './profile-foyer.js';
 import {createProjectWorlds} from './project-worlds.js';
 import {createRibbonSculpture,advanceHover} from './ribbon-sculpture.js';
@@ -52,6 +52,7 @@ export async function initWorld(demoEngine){
  const sculpture=new THREE.Group();sculpture.position.y=.2;scene.add(sculpture);
  const folded=createRibbonSculpture(),assembly=folded.assembly;sculpture.add(assembly);
  assembly.rotation.set(.12,-.48,-.2);
+ const sculptureFades=[];const seenMaterials=new Set();assembly.traverse(o=>{if(!o.material)return;for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(!m.transparent&&!seenMaterials.has(m)){seenMaterials.add(m);m.transparent=true;sculptureFades.push(m);}});
 
  // The identity is physical geometry in the same scene: it is lit, occluded,
  // reflected, and moved by the same camera as the sculpture.
@@ -82,6 +83,7 @@ export async function initWorld(demoEngine){
  let mode=document.documentElement.dataset.sceneMode||'intro',phase=Number((mode==='project'?projectTrack:mode==='gateway'?document.querySelector('#project-overview'):mode==='profile'?document.querySelector('#about'):track).dataset.phase||0),projectIndex=Number(projectTrack.dataset.project||0),turn=0,dragX=0,dragging=false,lastX=0;
  const look=new THREE.Vector3(),desired=new THREE.Vector3(),lookCurrent=new THREE.Vector3(0,-.15,-.3);
  let moving=false,flight=null,lastLocation='intro',frameClock=0,previewStation=-1;
+ let profileEntry=smoother(1,0,document.querySelector('#about').getBoundingClientRect().top/innerHeight),gatewayEntry=smoother(1,0,document.querySelector('#project-overview').getBoundingClientRect().top/innerHeight);
  addEventListener('portfolio-station-preview',e=>{previewStation=e.detail.index;});
  const fromPosition=new THREE.Vector3(),fromLook=new THREE.Vector3();
  const hoverSpring={value:0,velocity:0},hoverSphere=new THREE.Sphere(),hoverPoint=new THREE.Vector3();let hoverTarget=0,pulseUntil=0,hoverX=0,hoverY=0,touchStartY=0;
@@ -91,7 +93,7 @@ export async function initWorld(demoEngine){
  const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t);};
 
  function resize(){const r=hero.getBoundingClientRect();if(w===Math.round(r.width)&&h===Math.round(r.height))return;w=Math.round(r.width);h=Math.round(r.height);if(!w||!h)return;renderer.setSize(w,h,false);composer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
- addEventListener('portfolio-progress',e=>{mode=e.detail.mode;phase=e.detail.phase;motion=e.detail.motion;projectIndex=e.detail.index||0;if(mode!=='intro'){hoverTarget=0;pulseUntil=0;hoverSpring.value=hoverSpring.velocity=0;hero.dataset.hoverEnergy='0';}});
+ addEventListener('portfolio-progress',e=>{mode=e.detail.mode;phase=e.detail.phase;motion=e.detail.motion;projectIndex=e.detail.index||0;profileEntry=e.detail.profileEntry??profileEntry;gatewayEntry=e.detail.gatewayEntry??gatewayEntry;if(mode!=='intro'){hoverTarget=0;pulseUntil=0;hoverSpring.value=hoverSpring.velocity=0;hero.dataset.hoverEnergy='0';}});
  addEventListener('portfolio-project',()=>{turn=1;});
  addEventListener('portfolio-motion',e=>{motion=e.detail.enabled;if(trigger)trigger.disabled=!motion;if(!motion){hoverTarget=0;pulseUntil=0;hoverSpring.value=hoverSpring.velocity=0;}});
  function hitBoard(e,type){if(mode!=='project')return false;pointerNDC.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);raycaster.setFromCamera(pointerNDC,camera);const hit=raycaster.intersectObjects(projectWorlds.screens)[0];if(hit?.uv){demoEngine.pointer(hit.uv.x,hit.uv.y,type);return true;}return false;}
@@ -127,9 +129,10 @@ export async function initWorld(demoEngine){
   hero.dataset.hoverEnergy=energy.toFixed(3);hero.dataset.hoverSource=hoverTarget?'pointer':now<pulseUntil?'tap':'none';track.dataset.hoverField=energy>.1?(dragging?'dragging':'active'):'resting';if(trigger)trigger.setAttribute('aria-pressed',String(energy>.4));
   const portrait=w<h*.85,p=motion?phase:Math.round(phase),intro=smooth(.15,1,p),direction=smooth(1.1,2.3,p);
   const renderKey=[mode,p,w,h,projectIndex,mode==='project'?demoEngine.revision:0,dragX,motion,energy.toFixed(3)].join('/');if(!motion&&renderKey===lastRenderKey)return;lastRenderKey=renderKey;
-  const showProjects=mode==='gateway'||mode==='project',profileIndex=Math.min(2,Math.max(0,Math.round(p)));
+  const showProjects=mode==='gateway'||mode==='project'||(mode==='profile'&&gatewayEntry>.1),profileIndex=Math.min(2,Math.max(0,Math.round(p)));
   projectWorlds.setVisible(showProjects);identity.visible=mode==='intro';sculpture.visible=true;
-  profileFoyer.update({active:profileIndex,time:elapsed,motion,portrait,narrow:!portrait&&w/h<1.25,visible:mode==='profile'});
+  const profileOptions={portrait:w<=760||h<=620,aspect:w/h};
+  profileFoyer.update({phase:mode==='intro'?0:mode==='gateway'?2.65:p,entry:smoother(.3,.8,profileEntry),exit:gatewayEntry,time:elapsed,motion,...profileOptions,visible:profileEntry>.001&&gatewayEntry<.999});
   const gateway=mode==='gateway';
   projectWorlds.update({phase:mode==='project'?p:0,time:elapsed,delta,motion,portrait,turn:0,index:mode==='project'?projectIndex:-1,compact:!portrait&&h<700,narrow:!portrait&&w/h<1.25});
   if(lastTextureRevision!==demoEngine.revision){projectWorlds.refresh();lastTextureRevision=demoEngine.revision;}
@@ -141,7 +144,7 @@ export async function initWorld(demoEngine){
    folded.update({time:elapsed,phase:p,motion,energy,pointerX:hoverX,pointerY:hoverY,compact:portrait});
    const fade=1-smooth(.35,1,p);identity.visible=fade>.001;identity.position.set(intro*2.4,-1.65+intro*.55,.5-intro*4.5);identity.rotation.y=-.08-intro*.4;identity.scale.setScalar(portrait?.59:1);nameMaterial.opacity=fade;nameSide.opacity=fade;
   }else if(mode==='profile'){
-   const shot=profileShot(profileIndex,{portrait,aspect:w/h,phase:p});desired.set(...shot.position);look.set(...shot.target);
+   const shot=profileRail(p,profileOptions);desired.set(...shot.position);look.set(...shot.target);
    sculpture.position.set(2.15,.57,-1.05);sculpture.scale.setScalar(.65);folded.update({time:elapsed,phase:2.6,motion,energy:0,pointerX:0,pointerY:0,compact:portrait});
   }else if(gateway){
    const g=smooth(0,1,p);desired.set(portrait?10:14+g*2,portrait?12:10+g*3,portrait?15:15-g*4);look.set(portrait?-2:0,-1,-22-g*5);
@@ -151,15 +154,22 @@ export async function initWorld(demoEngine){
    if(portrait)look.y-=.4;
    sculpture.position.set(2.15,.57,-1.05);sculpture.scale.setScalar(.65);
   }
+  // Section boundaries share the same poses; scrolling controls the whole move.
+  const firstProfile=profileRail(0,profileOptions),lastProfile=profileRail(2.65,profileOptions);
+  if(mode==='intro'&&profileEntry>0){desired.lerp(new THREE.Vector3(...firstProfile.position),profileEntry);look.lerp(new THREE.Vector3(...firstProfile.target),profileEntry);}
+  if(mode==='profile'&&profileEntry<1){const endPosition=new THREE.Vector3(Math.sin(2.6*.8)*.35-1.8,1.1,(portrait?18.2:11.6)-1.9),endLook=new THREE.Vector3(0,portrait?-.05:-.15,-3.6);desired.lerpVectors(endPosition,desired,profileEntry);look.lerpVectors(endLook,look,profileEntry);}
+  if(mode==='profile'&&gatewayEntry>0){desired.lerp(new THREE.Vector3(portrait?10:14,portrait?12:10,15),gatewayEntry);look.lerp(new THREE.Vector3(portrait?-2:0,-1,-22),gatewayEntry);}
+  if(mode==='gateway'&&gatewayEntry<1){desired.lerpVectors(new THREE.Vector3(...lastProfile.position),desired,gatewayEntry);look.lerpVectors(new THREE.Vector3(...lastProfile.target),look,gatewayEntry);}
+  const sculptureAlpha=1-smoother(.05,.7,profileEntry);sculpture.visible=sculptureAlpha>.001;sculptureFades.forEach(m=>{m.opacity=sculptureAlpha;m.depthWrite=sculptureAlpha>.98;});
   floor.visible=mode==='intro'&&!portrait&&p<1.1;glaze.visible=floor.visible;
   const location=mode==='project'?'project-'+projectIndex:mode==='profile'?'profile-'+profileIndex:mode;
   if(location!==lastLocation){
-   if(motion&&frameClock){fromPosition.copy(camera.position);fromLook.copy(lookCurrent);flight={start:now,duration:mode==='project'?1700:mode==='profile'?1400:1500};}
+   if(motion&&frameClock&&mode==='project'){fromPosition.copy(camera.position);fromLook.copy(lookCurrent);flight={start:now,duration:mode==='project'?1700:mode==='profile'?1400:1500};}
    else flight=null;
    lastLocation=location;
   }
   moving=!!flight;
-  if(!motion){flight=null;moving=false;camera.position.copy(desired);lookCurrent.copy(look);}
+  if(!motion||!frameClock){flight=null;moving=false;camera.position.copy(desired);lookCurrent.copy(look);}
   else if(flight){
    const f=clamp((now-flight.start)/flight.duration),e=f*f*(3-2*f);
    camera.position.lerpVectors(fromPosition,desired,e);camera.position.y+=Math.sin(f*Math.PI)*(mode==='project'?1.9:.5);lookCurrent.lerpVectors(fromLook,look,e);

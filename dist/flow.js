@@ -1,5 +1,5 @@
 import {storyAtProgress,storyProgress} from './story-model.js';
-import {profileStops,profileEnd,profileAtProgress} from './profile-layout.js';
+import {profileEnd,profileAtProgress,profilePhaseAtScroll,smoother} from './profile-layout.js?v=2';
 import {projectStories} from './project-stories.js';
 import {demoContent} from './demo-content.js';
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
@@ -16,7 +16,7 @@ export function createFlow(projects,escapeHTML,engine){
  root.classList.add('sequence-ready');
  function bounds(el){const r=el.getBoundingClientRect();return {top:r.top,start:r.top+scrollY,bottom:r.bottom,range:Math.max(1,r.height-innerHeight)};}
  function goTo(chapter){const b=bounds(intro);window.scrollTo({top:b.start+clamp(chapter/2.6)*b.range,behavior:motion?'smooth':'instant'});}
- function goToProfile(step){const b=bounds(profile);history.replaceState(null,'',step===2?'#experience':'#about');window.scrollTo({top:b.start+clamp(step/profileEnd)*b.range,behavior:motion?'smooth':'instant'});}
+ function goToProfile(step){const b=bounds(profile),mobile=matchMedia('(max-width:760px), (max-height:620px)').matches;history.replaceState(null,'',step===2?'#experience':'#about');window.scrollTo({top:mobile?profilePanels[step].getBoundingClientRect().top+scrollY-80:b.start+clamp(step/profileEnd)*b.range,behavior:motion?'smooth':'instant'});}
  function goToStep(step,behavior=motion?'smooth':'instant'){const b=bounds(work);window.scrollTo({top:b.start+storyProgress(index,step,projects.length)*b.range,behavior});}
  function selectProject(next,scroll=true){
   index=(next+projects.length)%projects.length;const p=projects[index],c=demoContent[index];lastStep=-1;
@@ -34,7 +34,9 @@ export function createFlow(projects,escapeHTML,engine){
  }
  function update(){
   frame=0;if(root.classList.contains('quick-view')){mode='none';profilePanels.forEach(p=>{p.inert=false;p.removeAttribute('aria-hidden');});document.querySelector('.profile-navigation').inert=true;root.dataset.sceneMode='none';root.style.setProperty('--scene-exit','0');document.querySelector('.journey-controls').inert=true;document.querySelector('.projects-sticky').inert=true;engine.setProgress(projectPhase,false,motion);dispatchEvent(new CustomEvent('portfolio-progress',{detail:{mode:'none',phase:0,index,motion}}));return;}const ib=bounds(intro),wb=bounds(work),gb=bounds(gateway),pb=bounds(profile);
-  const profileTarget=profileAtProgress((scrollY-pb.start)/pb.range).phase;
+  const mobileProfile=matchMedia('(max-width:760px), (max-height:620px)').matches;
+  const profileTarget=mobileProfile?profilePhaseAtScroll(scrollY,profilePanels.map(p=>p.getBoundingClientRect().top+scrollY-80)):profileAtProgress((scrollY-pb.start)/pb.range).phase;
+  const profileEntry=smoother(1,0,pb.top/innerHeight),gatewayEntry=smoother(1,0,gb.top/innerHeight);
   profilePhase=motion?profilePhase+(profileTarget-profilePhase)*.15:profileTarget;if(Math.abs(profileTarget-profilePhase)<.002)profilePhase=profileTarget;
   const it=clamp((scrollY-ib.start)/ib.range)*2.6,story=storyAtProgress((scrollY-wb.start)/wb.range,projects.length),pt=story.phase;
   if(story.index!==index&&wb.top<innerHeight*.6){selectProject(story.index,false);projectPhase=pt;}
@@ -43,8 +45,8 @@ export function createFlow(projects,escapeHTML,engine){
   mode=wb.top<innerHeight*.6&&wb.bottom>0?'project':ib.bottom>innerHeight*.35&&ib.top<innerHeight?'intro':pb.bottom>innerHeight*.35&&pb.top<innerHeight?'profile':gb.bottom>0&&gb.top<innerHeight?'gateway':'none';
   const gatewayPhase=clamp((scrollY-gb.start)/gb.range);gateway.dataset.phase=gatewayPhase.toFixed(3);
   const profileIndex=Math.min(2,Math.max(0,Math.round(profilePhase)));
-  profilePanels.forEach((panel,n)=>{const d=profilePhase-n,incoming=n===0?1:smooth(-.62,-.18,d),outgoing=n===2?1:1-smooth(.2,.62,d);panel.style.setProperty('--profile-opacity',String(motion?incoming*outgoing:Number(profileIndex===n)));panel.style.setProperty('--profile-y',`${motion?clamp(-d,-1,1)*24:0}px`);panel.inert=profileIndex!==n||mode!=='profile';panel.setAttribute('aria-hidden',String(panel.inert));});
-  if(lastProfile!==profileIndex){lastProfile=profileIndex;document.querySelector('#profile-position').textContent=`0${profileIndex+1} / 03`;document.querySelectorAll('[data-profile-go]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.profileGo)===profileIndex)));document.querySelector('#profile-object-label').textContent=['CURIOSITY / CONNECTED INTERESTS','EDUCATION / TOOLS IN PRACTICE','EXPERIENCE / THE NEXT STEP'][profileIndex];document.querySelector('#profile-next').innerHTML=(profileIndex===2?'Explore the work':'Continue')+' <span>↓</span>';}
+  profilePanels.forEach((panel,n)=>{const weight=mobileProfile?1:Number(profileIndex===n);panel.style.setProperty('--profile-opacity',String(weight));panel.style.setProperty('--profile-y','0px');panel.inert=!mobileProfile&&(profileIndex!==n||mode!=='profile');panel.setAttribute('aria-hidden',String(panel.inert));});
+  if(lastProfile!==profileIndex){if(motion&&!mobileProfile&&mode==='profile'&&lastProfile>=0){profilePanels.forEach(p=>p.getAnimations().forEach(a=>a.cancel()));profilePanels[profileIndex].animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,easing:'cubic-bezier(.2,.7,.2,1)'});}lastProfile=profileIndex;document.querySelector('#profile-position').textContent=`0${profileIndex+1} / 03`;document.querySelectorAll('[data-profile-go]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.profileGo)===profileIndex)));document.querySelector('#profile-object-label').textContent=['CURIOSITY / CONNECTED INTERESTS','EDUCATION / TOOLS IN PRACTICE','EXPERIENCE / THE NEXT STEP'][profileIndex];document.querySelector('#profile-next').innerHTML=(profileIndex===2?'Explore the work':'Continue')+' <span>↓</span>';}
   profile.dataset.phase=profilePhase.toFixed(3);profile.style.setProperty('--profile-progress',profilePhase/profileEnd);document.querySelector('.profile-navigation').inert=mode!=='profile';
   const chapter=Math.min(2,Math.max(0,Math.round(introPhase)));
   for(const panel of panels){const n=Number(panel.dataset.chapter),d=introPhase-n,incoming=n===0?1:smooth(-.62,-.18,d),outgoing=n===2?1:1-smooth(.2,.62,d);panel.style.setProperty('--chapter-opacity',String(motion?incoming*outgoing:Number(chapter===n)));panel.style.setProperty('--chapter-y',`${motion?clamp(-d,-1,1)*48:0}px`);const inert=chapter!==n||mode!=='intro';if(inert&&panel.contains(document.activeElement))document.querySelector('.journey-next').focus({preventScroll:true});panel.inert=inert;panel.setAttribute('aria-hidden',String(inert));}
@@ -59,7 +61,7 @@ export function createFlow(projects,escapeHTML,engine){
   work.style.setProperty('--demo-progress',(index+clamp(projectPhase/2.6))/projects.length);work.style.setProperty('--chapter-progress',projectPhase/2.6);work.style.setProperty('--step-opacity',String(motion?1-.45*smooth(.15,.5,Math.abs(projectPhase-Math.round(projectPhase))):1));
   intro.dataset.phase=introPhase.toFixed(3);work.dataset.phase=projectPhase.toFixed(3);
   engine.setProgress(projectPhase,mode==='project',motion);
-  dispatchEvent(new CustomEvent('portfolio-progress',{detail:{mode,phase:mode==='project'?projectPhase:mode==='profile'?profilePhase:mode==='gateway'?gatewayPhase:introPhase,index,motion,transition:Math.max(0,(projectPhase-2.3)/.3)}}));
+  dispatchEvent(new CustomEvent('portfolio-progress',{detail:{mode,phase:mode==='project'?projectPhase:mode==='profile'?profilePhase:mode==='gateway'?gatewayPhase:introPhase,index,motion,profileEntry,gatewayEntry,transition:Math.max(0,(projectPhase-2.3)/.3)}}));
   if(Math.abs(it-introPhase)>.002||Math.abs(pt-projectPhase)>.002||Math.abs(profileTarget-profilePhase)>.002)frame=requestAnimationFrame(update);
  }
  function request(){if(!frame)frame=requestAnimationFrame(update);}

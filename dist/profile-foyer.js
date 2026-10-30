@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {TextGeometry} from './vendor/geometries/TextGeometry.js';
-import {profileStops} from './profile-layout.js';
+import {profileStops,profilePlacement,profileWeight} from './profile-layout.js';
 import {profile} from './portfolio-data.js';
 
 // Personal installations occupy the entrance wing, ahead of the project hall.
@@ -21,11 +21,10 @@ export function createProfileFoyer({scene,box,font,chrome,graphite,red}){
  function ring(radius,material=mint,tube=.012){return new THREE.Mesh(new THREE.TorusGeometry(radius,tube,8,72),material);}
  function label(root,text,x,y,z,width=2.2){const l=plaque(text,width,.27);l.position.set(x,y,z);root.add(l);return l;}
  for(const [i,s] of profileStops.entries()){
-  const root=new THREE.Group();root.name=s.label;root.position.set(s.x,0,s.z);root.rotation.y=s.x<0?Math.PI/2:-Math.PI/2;foyer.add(root);roots.push(root);
-  root.add(box(7.4,.16,4.4,graphite,0,-3.04,-.2));root.add(box(7.4,.025,.035,red,0,-2.94,1.97));
-  root.add(box(7.2,5.6,.14,stone,0,.05,-1.25));root.add(box(.035,5.6,.025,red,-3.55,.05,-1.16));
-  label(root,`UMANG / 0${i+1} / ${s.label}`,0,3.2,-1.1,6.8);
-  root.add(box(6.3,.18,1.9,stone,0,-2.35,-.1));for(const x of [-2.8,2.8])root.add(box(.12,.75,1.35,chrome,x,-2.73,-.2));
+  const root=new THREE.Group();root.name=s.label;root.position.set(s.x,0,s.z);root.rotation.y=0;foyer.add(root);roots.push(root);
+  root.add(box(6.1,.16,1.65,graphite,0,-2.4,-.12));
+  root.add(box(5.6,.018,.025,red,0,-2.30,.70));
+  for(const x of [-2.6,2.6])root.add(box(.10,.5,1.1,chrome,x,-2.72,-.12));
   const anchor=new THREE.Object3D();anchor.position.set(0,.35,.15);root.add(anchor);anchors.push(anchor);
  }
  // Curiosity becomes a connected, three-dimensional map of Umang's interests.
@@ -57,13 +56,17 @@ export function createProfileFoyer({scene,box,font,chrome,graphite,red}){
   for(const [date,title,org,y] of records){const node=new THREE.Mesh(new THREE.SphereGeometry(.1,16,12),mint);node.position.set(-2.3,y,.25);root.add(node);const orbit=ring(.2,red);orbit.position.copy(node.position);root.add(orbit);beacons.push(orbit);root.add(line([[-2.3,y,.2],[-1.7,y,.2]]));label(root,date,.45,y+.37,.2,4.6);label(root,title,.45,y-.08,.2,4.6);label(root,org,.45,y-.48,.2,4.6);}
   label(root,'OPEN TO AI & SOFTWARE ENGINEERING INTERNSHIPS',0,-2.05,.2,6.2);
  }
- return {root:foyer,roots,anchors,update({active=-1,time=0,motion=true,portrait=false,narrow=false,visible=true}){
-  foyer.visible=visible;
+ // Each installation owns its fade materials; the rest of the room stays opaque.
+ const fades=roots.map(root=>{
+  const materials=new Map();root.traverse(o=>{if(!o.material)return;const list=Array.isArray(o.material)?o.material:[o.material];const copies=list.map(m=>{if(!materials.has(m)){const clone=m.clone();clone.transparent=true;materials.set(m,{clone,base:m.opacity});}return materials.get(m).clone;});o.material=Array.isArray(o.material)?copies:copies[0];});return [...materials.values()];
+ });
+ return {root:foyer,roots,anchors,update({active=0,phase=active,entry=1,exit=0,time=0,motion=true,portrait=false,aspect=1.78,visible=true}){
+  foyer.visible=visible;const fit=profilePlacement({portrait,aspect});
   roots.forEach((root,i)=>{
-   // Hide other personal displays in the close-up; room architecture stays shared.
-   root.visible=i===active;root.position.y=portrait?2.05:0;root.scale.setScalar(portrait?.66:narrow?.86:1);
+   const alpha=profileWeight(i,phase)*entry*(1-exit);root.visible=alpha>.001;root.position.set(fit.x,fit.y,profileStops[i].z);root.scale.setScalar(fit.scale);
+   fades[i].forEach(({clone,base})=>{clone.opacity=base*alpha;clone.depthWrite=alpha>.98;});
   });
-  orbital.forEach((o,i)=>{if(i===0)o.rotation.y=motion?Math.sin(time*.18)*.08:0;else o.rotation.z=motion?time*.065*(i%2?1:-1):0;});
-  beacons.forEach((o,i)=>o.scale.setScalar(motion?1+Math.sin(time*1.3+i)*.07:1));
+  orbital.forEach((o,i)=>{if(i===0)o.rotation.y=motion?Math.sin(time*.18)*.04:0;else o.rotation.z=motion?time*.035*(i%2?1:-1):0;});
+  beacons.forEach((o,i)=>o.scale.setScalar(motion?1+Math.sin(time*.8+i)*.035:1));
  }};
 }

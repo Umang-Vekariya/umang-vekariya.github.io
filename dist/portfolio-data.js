@@ -74,8 +74,8 @@ export const projects=[
   }
 ];
 export const experiences=[
-  {dates:'MAY — JUL 2026',title:'Software Engineering Intern',organization:'Mahant Solutions',text:'Contributed to full-stack development, feature implementation, debugging, testing, and maintenance. Collaborated through version-control workflows and agile development practices.'},
-  {dates:'JUL 2026',title:'Edge AI & Robotics Summer School',organization:'ACM India · IISc Bengaluru',text:'Selected participant in the ACM India Summer School at IISc. Explored edge AI, embedded machine learning, robotics, computer vision, and autonomous systems through expert-led sessions and hands-on activities.'}
+  {dates:'MAY — JUL 2026',title:'Software Engineering Intern',organization:'Mahant Solutions',summary:'Full-stack development, feature implementation, debugging, and testing within an agile team.',text:'Contributed to full-stack development, feature implementation, debugging, testing, and maintenance. Collaborated through version-control workflows and agile development practices.'},
+  {dates:'JUL 2026',title:'Edge AI & Robotics Summer School',organization:'ACM India · IISc Bengaluru',summary:'Selected for hands-on learning in edge AI, robotics, computer vision, and autonomous systems.',text:'Selected participant in the ACM India Summer School at IISc. Explored edge AI, embedded machine learning, robotics, computer vision, and autonomous systems through expert-led sessions and hands-on activities.'}
 ];
 export const skills=[
   {name:'Languages',items:['Python','C++','Java','C','JavaScript','TypeScript']},

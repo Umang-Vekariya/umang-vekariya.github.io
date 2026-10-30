@@ -14,7 +14,7 @@ export function createWorkshop({scene,box,chrome,graphite,red}){
  const grid=new THREE.GridHelper(88,88,0x384446,0x202b2e);grid.position.set(0,-3.14,-25);room.add(grid);
  room.add(box(32,.2,80,graphite,0,-3.3,-26));
  // A continuous architectural rhythm establishes scale and perspective.
- for(let z=21;z>=-57;z-=6){
+ for(let z=9;z>=-57;z-=6){
   for(const s of [-1,1]){
    room.add(box(.25,11,.38,concrete,s*14,2.2,z));
    room.add(box(.035,7,.045,z%12===9?red:dim,s*13.85,.5,z+.24));
@@ -22,7 +22,7 @@ export function createWorkshop({scene,box,chrome,graphite,red}){
   room.add(box(28,.22,.35,concrete,0,7.65,z));
   room.add(box(8,.035,.07,cool,0,7.49,z));
  }
- for(const x of [-14.5,14.5])room.add(box(.2,11,90,graphite,x,2.2,-15));
+ for(const x of [-14.5,14.5])room.add(box(.2,11,72,graphite,x,2.2,-24));
  room.add(box(29,11,.2,graphite,0,2.2,-59));
  for(const x of [-2.1,2.1]){
   room.add(box(.025,.02,67,red,x,-3.115,-23));
@@ -34,12 +34,7 @@ export function createWorkshop({scene,box,chrome,graphite,red}){
   const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;
   return new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshBasicMaterial({map:t,toneMapped:false}));
  }
- const entrance=sign('UMANG / THE PERSON BEHIND THE WORK',{width:8.6,height:1.05,size:38});entrance.position.set(0,5.3,-4);room.add(entrance);
- const gate=new THREE.Group();gate.name='Personal foyer threshold';gate.position.z=-7;room.add(gate);
- const doors=[];
- for(const side of [-1,1]){const door=new THREE.Group();door.position.x=side*7;door.add(box(14,9,.22,graphite,0,1.3,0));door.add(box(.03,7,.03,red,-side*6.7,1,.14));gate.add(door);doors.push(door);}
- const gateLabel=sign('GET TO KNOW THE PERSON. THEN EXPLORE THE WORK.',{width:10,height:.55,size:30});gateLabel.position.set(0,3.1,.16);gate.add(gateLabel);
- let gateOpen=0;
+ const entrance=sign('UMANG / THE WORKSHOP',{width:8.6,height:1.05,size:47});entrance.position.set(0,5.3,-4);room.add(entrance);
  const end=sign('KEEP ASKING WHY.',{width:9,height:1.1,size:48});end.position.set(0,3,-58.8);room.add(end);
  const plinth=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.65,.35,72),graphite);plinth.position.set(0,-2.65,0);room.add(plinth);
  const halo=new THREE.Mesh(new THREE.TorusGeometry(2.52,.018,8,96),red);halo.rotation.x=-Math.PI/2;halo.position.set(0,-2.46,0);room.add(halo);
@@ -68,11 +63,8 @@ export function createWorkshop({scene,box,chrome,graphite,red}){
   for(let z=-10;z>=-52;z-=12)room.add(box(2,.065,.065,copper,x/2+Math.sign(x)*2.1,5.9,z));
  }
  const cursor=new THREE.Mesh(new THREE.SphereGeometry(.065,10,8),ivory);room.add(cursor);
- return {root:room,exhibition,gate,update({time,motion,index=-1,showProjects=true,delta=.016}){
+ return {root:room,exhibition,update({time,motion,index=-1,showProjects=true}){
   exhibition.visible=showProjects;
-  gateOpen=motion?THREE.MathUtils.damp(gateOpen,showProjects?1:0,4,delta):Number(showProjects);
-  doors.forEach((door,i)=>door.position.x=(i?1:-1)*(7+gateOpen*14.2));
-  gateLabel.visible=gateOpen<.5;gate.visible=gateOpen<.995;
   stationLights.forEach((l,i)=>l.material=i===index?red:dim);
   cursor.visible=motion;cursor.position.set(2.1,-3.03,7-(time*3%64));
   for(let i=0;i<signals.length;i++)signals[i].visible=!motion||(Math.floor(time*.7)+i)%8!==0;

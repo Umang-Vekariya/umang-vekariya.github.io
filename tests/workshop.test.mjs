@@ -9,7 +9,7 @@ import {storyAtProgress,storyProgress} from '../dist/story-model.js';
 import {readFileSync} from 'node:fs';
 import {FontLoader} from '../dist/vendor/loaders/FontLoader.js';
 import {createProfileFoyer} from '../dist/profile-foyer.js';
-import {profileStops,profileEnd,profileShot,profileAtProgress} from '../dist/profile-layout.js';
+import {profileStops,profileEnd,profileShot,profileAtProgress,profileRail,profileWeight,profilePhaseAtScroll} from '../dist/profile-layout.js';
 
 test('the floor plan, project data, and scroll route address the same eight projects',()=>{
  assert.deepEqual(workshopStations.map(s=>s.id),projects.map(s=>s.id));
@@ -28,27 +28,47 @@ test('personal installations precede the project hall and frame correctly across
   const font=new FontLoader().parse(JSON.parse(readFileSync(new URL('../dist/assets/helvetiker_bold.typeface.json',import.meta.url),'utf8')));
   const room=createWorkshop({scene,box,chrome:mat,graphite:mat,red:mat});
   const foyer=createProfileFoyer({scene,box,font,chrome:mat,graphite:mat,red:mat});
-  assert.equal(profileStops.length,3);assert.ok(profileStops.every(s=>s.z>0));
+  assert.equal(profileStops.length,3);assert.ok(profileStops.every(s=>s.z>-13));
   assert.deepEqual(profileAtProgress(0),{phase:0,index:0});assert.deepEqual(profileAtProgress(1),{phase:profileEnd,index:2});
-  for(const [width,height] of [[1440,900],[1280,720],[820,900],[390,844],[320,640]]){
-   const aspect=width/height,portrait=width<height*.85,camera=new THREE.PerspectiveCamera(35,aspect,.1,180);
+  for(const [width,height] of [[1920,1080],[1440,900],[1280,720],[1280,600],[820,1400],[390,844],[320,640],[320,900]]){
+   const aspect=width/height,portrait=width<=760||height<=620,camera=new THREE.PerspectiveCamera(35,aspect,.1,180);
    for(let i=0;i<3;i++)for(const motion of [true,false]){
-    foyer.update({active:i,time:2,motion,portrait,narrow:!portrait&&aspect<1.25,visible:true});
+    foyer.update({active:i,phase:i,time:2,motion,portrait,aspect,visible:true});
     room.update({time:2,motion,index:-1,showProjects:false});
-    assert.equal(room.exhibition.visible,false);assert.equal(room.gate.visible,true);
-    assert.equal(foyer.roots.filter(r=>r.visible).length,1);
+    assert.equal(room.exhibition.visible,false);
+    assert.ok(foyer.roots[i].visible);
     const shot=profileShot(i,{portrait,aspect,phase:i});camera.position.set(...shot.position);camera.lookAt(...shot.target);camera.updateMatrixWorld();scene.updateMatrixWorld(true);
     const center=foyer.anchors[i].getWorldPosition(new THREE.Vector3()).project(camera);
     assert.ok(Math.abs(center.x)<.95&&Math.abs(center.y)<.95,`profile ${i} outside ${width}x${height}`);
+    const bounds=new THREE.Box3().setFromObject(foyer.roots[i]);
+    for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
+     const corner=new THREE.Vector3(x,y,z).project(camera);
+     if(portrait){assert.ok(Math.abs(corner.x)<.99&&corner.y>.08&&corner.y<.90,`profile ${i} silhouette clips mobile visual area at ${width}x${height}: ${corner.toArray()}`);}
+     else{assert.ok(corner.x>.02&&corner.x<.98&&corner.y>-.80&&corner.y<.75,`profile ${i} silhouette crosses copy/header/footer at ${width}x${height}: ${corner.toArray()}`);}
+    }
     foyer.roots[i].traverse(o=>assert.ok(o.matrixWorld.elements.every(Number.isFinite)));
    }
   }
-  room.update({time:2,motion:false,showProjects:true});assert.equal(room.exhibition.visible,true);assert.equal(room.gate.visible,false);
+  room.update({time:2,motion:false,showProjects:true});assert.equal(room.exhibition.visible,true);
   const html=readFileSync(new URL('../dist/index.html',import.meta.url),'utf8');
   assert.ok(html.indexOf('id="about"')<html.indexOf('id="project-overview"'));
   assert.ok(html.indexOf('id="experience"')<html.indexOf('id="project-overview"'));
   assert.equal((html.match(/data-profile-stop="/g)||[]).length,3);
  }finally{globalThis.document=original;}
+});
+
+test('the overview rail stays continuous, forward-facing, and populated throughout each move',()=>{
+ for(const portrait of [false,true]){
+  let previous=profileRail(0,{portrait});
+  for(let p=.001;p<=profileEnd;p+=.001){
+   const next=profileRail(p,{portrait}),distance=Math.hypot(...next.position.map((v,i)=>v-previous.position[i]));
+   assert.ok(distance<.02,'camera jumps at phase '+p);
+   assert.ok(next.position[2]<=previous.position[2]+1e-8,'camera reverses direction');
+   const direction=next.target.map((v,i)=>v-next.position[i]);assert.ok(Math.abs(direction[0])<1e-8&&direction[2]<-10,'camera turns away from the forward path');
+   const weights=profileStops.map((_,i)=>profileWeight(i,p));assert.ok(weights.every(w=>w>=0&&w<=1));assert.ok(Math.abs(weights.reduce((a,b)=>a+b,0)-1)<1e-8,'installation disappears during a transition');previous=next;
+  }
+ }
+ const anchors=[100,1000,2100];assert.equal(profilePhaseAtScroll(100,anchors),0);assert.equal(profilePhaseAtScroll(1000,anchors),1);assert.equal(profilePhaseAtScroll(2100,anchors),2);
 });
 
 const context=new Proxy({}, {get:(_,key)=>['fillRect','fillText','beginPath','moveTo','lineTo','stroke','strokeRect'].includes(key)?()=>{}:undefined,set:()=>true});
