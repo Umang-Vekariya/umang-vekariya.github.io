@@ -3,6 +3,7 @@ import {createWorkshop} from './workshop-architecture.js';
 import {workshopShot} from './workshop-layout.js';
 import {profileRail,profileStops,smoother} from './profile-layout.js';
 import {createProfileFoyer} from './profile-foyer.js';
+import {createSpatialType} from './spatial-type.js';
 import {createProjectWorlds} from './project-worlds.js';
 import {createRibbonSculpture,advanceHover} from './ribbon-sculpture.js';
 import {RoomEnvironment} from './vendor/environments/RoomEnvironment.js';
@@ -57,7 +58,8 @@ export async function initWorld(demoEngine){
  // The identity is physical geometry in the same scene: it is lit, occluded,
  // reflected, and moved by the same camera as the sculpture.
  const font=await new FontLoader().loadAsync('./assets/helvetiker_bold.typeface.json');
- const profileFoyer=createProfileFoyer({scene,box,font,chrome,graphite,red});
+ const spatialType=createSpatialType(hero);
+ const profileFoyer=createProfileFoyer({scene,box,font,chrome,graphite,red,spatialType});
  const identity=new THREE.Group();scene.add(identity);
  const nameMaterial=new THREE.MeshPhysicalMaterial({color:0xe1ddd1,metalness:.38,roughness:.27,clearcoat:.3,transparent:true});
  const nameSide=new THREE.MeshStandardMaterial({color:0x4b4540,metalness:.9,roughness:.22,transparent:true});
@@ -183,6 +185,7 @@ export async function initWorld(demoEngine){
   hero.dataset.scenePhase=p.toFixed(3);hero.dataset.sceneMode=mode;hero.dataset.sceneWorld=mode==='project'?projectWorlds.names[projectIndex]:mode==='gateway'?'Workshop overview':mode==='profile'?profileStops[profileIndex].label:'Identity';hero.dataset.activeStudy=mode==='project'?String(projectIndex):'-1';
   bloom.strength=mode==='intro'?.1+energy*.12:.2;
   composer.render(delta);
+  spatialType.render(camera,{width:w,height:h,visible:profileEntry>.001&&gatewayEntry<.999});
   if(!document.documentElement.classList.contains('world-ready'))document.documentElement.classList.add('world-ready');
  }
  camera.position.set(0,.25,mobile?18.2:10.5);resize();requestAnimationFrame(frame);

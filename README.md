@@ -26,3 +26,5 @@ npm test
 The GitHub Pages workflow publishes `dist/` when `main` changes. The built scene bundle is committed; hosting requires no server or build environment. Only the static output is uploaded to Pages.
 
 The original private Sites checkout and the pre-workshop snapshot remain separate backups on the owner's computer.
+
+Small personal-installation labels use `spatial-type.js` to position native browser text from 3D anchors. This keeps glyph proportions and clarity independent of the WebGL resolution. Education stays on the right; the experience installation sits on the left with its supporting copy opposite it. The desktop overview reading layer is fixed while its scene is active.

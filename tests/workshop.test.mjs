@@ -9,6 +9,7 @@ import {storyAtProgress,storyProgress} from '../dist/story-model.js';
 import {readFileSync} from 'node:fs';
 import {FontLoader} from '../dist/vendor/loaders/FontLoader.js';
 import {createProfileFoyer} from '../dist/profile-foyer.js';
+import {createSpatialType} from '../dist/spatial-type.js';
 import {profileStops,profileEnd,profileShot,profileAtProgress,profileRail,profileWeight,profilePhaseAtScroll} from '../dist/profile-layout.js';
 
 test('the floor plan, project data, and scroll route address the same eight projects',()=>{
@@ -44,7 +45,7 @@ test('personal installations precede the project hall and frame correctly across
     for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
      const corner=new THREE.Vector3(x,y,z).project(camera);
      if(portrait){assert.ok(Math.abs(corner.x)<.99&&corner.y>.08&&corner.y<.90,`profile ${i} silhouette clips mobile visual area at ${width}x${height}: ${corner.toArray()}`);}
-     else{assert.ok(corner.x>.02&&corner.x<.98&&corner.y>-.80&&corner.y<.75,`profile ${i} silhouette crosses copy/header/footer at ${width}x${height}: ${corner.toArray()}`);}
+     else{const horizontal=i===2?-corner.x:corner.x;assert.ok(horizontal>.02&&horizontal<.98&&corner.y>-.80&&corner.y<.75,`profile ${i} silhouette crosses copy/header/footer at ${width}x${height}: ${corner.toArray()}`);}
     }
     foyer.roots[i].traverse(o=>assert.ok(o.matrixWorld.elements.every(Number.isFinite)));
    }
@@ -54,6 +55,22 @@ test('personal installations precede the project hall and frame correctly across
   assert.ok(html.indexOf('id="about"')<html.indexOf('id="project-overview"'));
   assert.ok(html.indexOf('id="experience"')<html.indexOf('id="project-overview"'));
   assert.equal((html.match(/data-profile-stop="/g)||[]).length,3);
+ }finally{globalThis.document=original;}
+});
+
+test('native scene labels track the experience anchors on the left and hide with their installation',()=>{
+ const original=globalThis.document;
+ const element=()=>({style:{},children:[],hidden:false,setAttribute(){},append(...children){this.children.push(...children);}});
+ globalThis.document={createElement:element};
+ try{
+  const host=element(),type=createSpatialType(host),root=new THREE.Group(),anchor=new THREE.Object3D();root.add(anchor);root.position.set(-3,0,-7.6);root.userData.labelAlpha=1;
+  const el=type.add(anchor,{width:4.7,kind:'record',record:{date:'May–Jul 2026',title:'Software Engineering Intern',organization:'Mahant Solutions'}});
+  const camera=new THREE.PerspectiveCamera(35,16/9,.1,180);camera.position.set(0,.4,4.2);camera.lookAt(0,.1,-7.6);camera.updateMatrixWorld();root.updateMatrixWorld(true);
+  type.render(camera,{width:1920,height:1080});assert.equal(el.hidden,false);
+  const x=Number(el.style.transform.match(/translate3d\(([-\d.]+)px/)[1]);assert.ok(x>0&&x<960,'experience label is not on the left');
+  assert.ok(parseFloat(el.style.width)>200,'record text has no usable reading width');assert.equal(el.children[1].textContent,'Software Engineering Intern');
+  root.userData.labelAlpha=.2;type.render(camera,{width:1920,height:1080});assert.equal(el.hidden,true);
+  root.userData.labelAlpha=1;root.visible=false;type.render(camera,{width:1920,height:1080});assert.equal(el.hidden,true);
  }finally{globalThis.document=original;}
 });
 
