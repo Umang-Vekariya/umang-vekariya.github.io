@@ -15,7 +15,7 @@ export function initNeuralStudio(){
  if(!ctx||!lc||!wc)return;
  const worker=new Worker(new URL('./neural-worker.js?v=1',import.meta.url),{type:'module'});
  const heat=document.createElement('canvas');heat.width=128;heat.height=128;const hc=heat.getContext('2d'),image=hc.createImageData(128,128),fieldValues=new Float32Array(128*128);
- let pattern='spiral',data=makeExperiment('spiral'),testing=data.testing,network=new NeuralNetwork(42,6),seed=42,version=0,epoch=0,running=false,visible=false,width=6,rate=.025,tool='probe',showTest=false,noise=0,selected=null,w=0,h=0,probe={x:0,y:0,active:false},lastPoint=null,drawing=false,strokeStart=0,strokes=[],features=[],history=[],lastHistoryEpoch=-1,queued=false,workerFailed=false;
+ let pattern='spiral',data=makeExperiment('spiral'),testing=data.testing,network=new NeuralNetwork(42,6),seed=42,version=0,epoch=0,running=false,visible=false,stage='learn',width=6,rate=.025,tool='probe',showTest=false,noise=0,selected=null,w=0,h=0,probe={x:0,y:0,active:false},lastPoint=null,drawing=false,strokeStart=0,strokes=[],features=[],history=[],lastHistoryEpoch=-1,queued=false,workerFailed=false;
  const palette={a:[174,211,194],b:[231,151,115]};
  const percentage=v=>v===null?'—':Math.round(v*100)+'%';
  function send(type,extra={}){worker.postMessage({type,version,...extra});}
@@ -23,16 +23,17 @@ export function initNeuralStudio(){
  function status(){
   $('#studio-train').innerHTML=running?'Pause learning <span>Ⅱ</span>':epoch>=3000?'Train again <span>↶</span>':epoch?'Continue learning <span>↗</span>':'Start learning <span>↗</span>';
   $('#studio-train').setAttribute('aria-pressed',String(running));
-  $('#studio-status').textContent=workerFailed?'TRAINING UNAVAILABLE':running?'LEARNING · LIVE WEIGHTS':epoch>=3000?'3000 EPOCHS · TRAINING COMPLETE':epoch?'PAUSED · KEEP EXPERIMENTING':'READY TO LEARN';
+  $('#studio-status').textContent=workerFailed?'Training unavailable':running?'Learning in real time':epoch>=3000?'Training complete':epoch?'Paused · ready to explore':'Ready to learn';
  }
  function updateMetrics(record=false){
   const train=network.evaluate(data.training),test=network.evaluate(testing);
-  $('#studio-train-accuracy').textContent=percentage(train.accuracy);$('#studio-test-accuracy').textContent=percentage(test.accuracy);$('#studio-epoch').textContent=String(epoch).padStart(4,'0');$('#studio-sample-count').textContent=data.training.length+' EXAMPLES';
+  $('#studio-learn-accuracy').textContent=percentage(train.accuracy);$('#studio-train-accuracy').textContent=percentage(train.accuracy);$('#studio-test-accuracy').textContent=percentage(test.accuracy);$('#studio-epoch').textContent=String(epoch).padStart(4,'0');$('#studio-sample-count').textContent=(showTest?testing.length:data.training.length)+(showTest?' unseen examples':' examples');
   if(record&&epoch!==lastHistoryEpoch){history.push({epoch,train:train.loss,test:test.loss});lastHistoryEpoch=epoch;if(history.length>180)history.shift();}
   drawLoss();
   // Update interpretation sparingly; live metrics themselves are not live regions.
   if(record&&epoch>0&&epoch%25<4&&!selected){
-   if(!testing.length)announce('Your own data is training. There is no independent test set for a drawing; training accuracy alone does not tell us how well it generalizes.');
+   if(noise>0&&testing.length)announce('The unseen examples have added noise. The training data is unchanged; compare the two scores to see the effect.');
+   else if(!testing.length)announce('Your own data is training. There is no independent test set for a drawing; training accuracy alone does not tell us how well it generalizes.');
    else if(train.accuracy-test.accuracy>.12)announce('The gap matters: it knows the training examples better than the unseen ones. Try a smaller network, or add examples in the regions it misses.');
    else if(test.accuracy>.95)announce('It is getting the unseen examples right. Reveal them, then add test noise to find the limits of that decision boundary.');
   }
@@ -73,6 +74,7 @@ export function initNeuralStudio(){
   updateProbe();drawNetwork();
  }
  function updateProbe(){
+  $('#studio-probe').hidden=!probe.active;
   const p=network.forward(probe.x,probe.y);
   $('#studio-output').textContent=Math.round(p*100)+'%';$('#studio-output').title='Probability of class B at the selected position';
   const values=[[probe.x,probe.y],network.h1,network.h2,[p]];
@@ -81,7 +83,7 @@ export function initNeuralStudio(){
  }
  function colorFeature(value){const t=(value+1)/2;return palette.a.map((a,i)=>Math.round(a*(1-t)+palette.b[i]*t));}
  function drawNetwork(){
-  const r=wires.getBoundingClientRect();wc.clearRect(0,0,r.width,r.height);
+  const r=wires.getBoundingClientRect();if(!r.width||!r.height)return;wc.clearRect(0,0,r.width,r.height);
   const layers=[$$('#studio-network .studio-input'),features.filter(f=>f.layer===1).map(f=>f.el),features.filter(f=>f.layer===2).map(f=>f.el),[$('#studio-output')]];
   const center=e=>{const b=e.getBoundingClientRect();return [b.x-r.x+b.width/2,b.y-r.y+b.height/2];};
   for(let l=0;l<3;l++)for(let j=0;j<layers[l].length;j++)for(let k=0;k<layers[l+1].length;k++){
@@ -92,39 +94,59 @@ export function initNeuralStudio(){
   for(const f of features){const im=f.ctx.createImageData(16,16);for(let y=0;y<16;y++)for(let x=0;x<16;x++){const value=network.activation(x/15*2-1,1-y/15*2,f.layer,f.index),c=colorFeature(value),i=(y*16+x)*4;im.data[i]=c[0]*.6;im.data[i+1]=c[1]*.6;im.data[i+2]=c[2]*.6;im.data[i+3]=255;}f.ctx.putImageData(im,0,0);}
  }
  function drawLoss(){
-  const r=loss.getBoundingClientRect(),ch=r.height,cw=r.width;lc.clearRect(0,0,cw,ch);lc.lineWidth=.6;lc.strokeStyle='#b5d2c719';for(let i=1;i<4;i++){lc.beginPath();lc.moveTo(0,ch*i/4);lc.lineTo(cw,ch*i/4);lc.stroke();}
+  const r=loss.getBoundingClientRect(),ch=r.height,cw=r.width;if(!cw||!ch)return;lc.clearRect(0,0,cw,ch);lc.lineWidth=.6;lc.strokeStyle='#b5d2c719';for(let i=1;i<4;i++){lc.beginPath();lc.moveTo(0,ch*i/4);lc.lineTo(cw,ch*i/4);lc.stroke();}
   if(history.length<2)return;const max=Math.max(.2,...history.flatMap(v=>[v.train||0,v.test||0]));
   for(const [key,color] of [['train','#e49a79'],['test','#b3d2c3']]){lc.beginPath();let started=false;history.forEach((v,i)=>{if(v[key]===null)return;const x=i/(history.length-1)*cw,y=ch-3-v[key]/max*(ch-6);started?lc.lineTo(x,y):lc.moveTo(x,y);started=true;});lc.strokeStyle=color;lc.lineWidth=1.4;lc.stroke();}
  }
  function schedule(){if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;render();});}}
- function inspect(layer,index){selected=selected?.layer===layer&&selected.index===index?null:{layer,index};features.forEach(f=>f.el.setAttribute('aria-pressed',String(selected?.layer===f.layer&&selected?.index===f.index)));$('#studio-show-output').hidden=!selected;$('#studio-field-label').textContent=selected?`LAYER ${layer} · NEURON ${index+1} ACTIVATION`:showTest?'UNSEEN EXAMPLES · PREDICTIONS':'PREDICTION FIELD';$('#studio-neuron-hint').textContent=selected?`Layer ${layer}, neuron ${index+1}: mint means negative activation; copper means positive. The pattern changes as it learns.`:'Each little window is a learned feature. Select one to see what it responds to.';schedule();}
+ function inspect(layer,index){selected=selected?.layer===layer&&selected.index===index?null:{layer,index};features.forEach(f=>f.el.setAttribute('aria-pressed',String(selected?.layer===f.layer&&selected?.index===f.index)));$('#studio-show-output').hidden=!selected;$('#studio-field-label').textContent=selected?`Layer ${layer} · Neuron ${index+1}`:showTest?'Unseen examples':'Prediction field';$('#studio-neuron-hint').textContent=selected?`Layer ${layer}, neuron ${index+1}: mint means negative activation; copper means positive. The pattern changes as it learns.`:'Each window shows one learned feature.';schedule();}
+ function setStage(next){
+  if(!['learn','inspect','challenge'].includes(next))return;
+  finishStroke();if(next==='challenge'&&running)setRunning(false);stage=next;$('#neural-console').dataset.stage=stage;
+  $$('[data-studio-stage]').forEach(tab=>{const active=tab.dataset.studioStage===stage;tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;$('#studio-pane-'+tab.dataset.studioStage).hidden=!active;});
+  $('#studio-teaching').hidden=stage!=='learn';
+  if(selected)inspect(selected.layer,selected.index);
+  probe.active=false;
+  showTest=stage==='challenge'&&testing.length>0;$('#studio-test').setAttribute('aria-pressed',String(showTest));
+  $('#studio-field-label').textContent=showTest?'Unseen examples':'Prediction field';
+  $('#studio-test-note').textContent=testing.length?'Hollow dots are unseen examples. A halo marks a wrong prediction.':'Your drawing has no separate test set. Choose a starting pattern in Learn to compare unseen examples.';
+  $('#studio-test').disabled=!testing.length;$('#studio-test').hidden=!testing.length;$('#studio-noise').disabled=!testing.length;$('#studio-pane-challenge .studio-test-controls').hidden=!testing.length;
+  if(stage!=='learn')setTool('probe');
+  announce(stage==='inspect'?(running?'Features update as the model learns. Select a neuron to explore its response.':'Select a neuron to explore its response.'):stage==='challenge'?(testing.length?'Training is paused. Add noise to see where the learned pattern breaks.':'This drawing has no independent test set. Choose a starting pattern in Learn to try the test.'):epoch?'Your examples and learned weights are preserved.': 'Start learning to see the boundary change.');
+  updateMetrics();resize();
+ }
  function buildNetwork(){features=[];for(const layer of [1,2]){const parent=$('#studio-layer-'+layer);parent.replaceChildren();for(let index=0;index<width;index++){const el=document.createElement('button'),c=document.createElement('canvas');el.type='button';el.className='studio-neuron';el.setAttribute('aria-label',`Inspect layer ${layer}, neuron ${index+1}`);el.setAttribute('aria-pressed','false');c.width=c.height=16;c.setAttribute('aria-hidden','true');el.append(c);el.addEventListener('click',()=>inspect(layer,index));parent.append(el);features.push({layer,index,el,ctx:c.getContext('2d')});}}$('#studio-network').dataset.width=String(width);$('#studio-architecture').textContent=`2 → ${width} → ${width} → 1`;}
  function setRunning(value){
   if(workerFailed)return;
-  if(value&&(!data.training.some(p=>p.label===0)||!data.training.some(p=>p.label===1))){announce('Give it both classes first. Choose Teach A and draw a few examples, then do the same with Teach B.');return;}
+  if(value&&(!data.training.some(p=>p.label===0)||!data.training.some(p=>p.label===1))){announce('Give it both classes first. Draw a few examples of A, then add some of B.');return;}
   if(value&&epoch>=3000){announce('This run reached 3000 epochs. Reset the model to try a fresh initialization.');return;}
-  running=value;status();send('run',{running});if(value)announce('The weights are changing from your training examples. Select a neuron to watch a feature form; unseen examples are never used for these updates.');
+  running=value;status();send('run',{running});if(value)announce('Learning from your examples. Open Inspect to look inside, or Challenge to test the pattern.');
  }
- function reset({rebuild=false}={}){version++;epoch=0;running=false;history=[];lastHistoryEpoch=-1;network=new NeuralNetwork(++seed,width);selected=null;if(rebuild)buildNetwork();features.forEach(f=>f.el.setAttribute('aria-pressed','false'));$('#studio-show-output').hidden=true;$('#studio-field-label').textContent=showTest?'UNSEEN EXAMPLES · PREDICTIONS':'PREDICTION FIELD';$('#studio-neuron-hint').textContent='Each little window is a learned feature. Select one to see what it responds to.';send('reset',{seed,width,points:data.training});send('rate',{rate});send('visible',{visible:visible&&!document.hidden});status();updateMetrics(true);schedule();}
- function loadPattern(next){pattern=next;data=makeExperiment(pattern);testing=noisyExamples(data.testing,noise);strokes=[];$('#studio-undo').disabled=true;showTest=false;$('#studio-test').setAttribute('aria-pressed','false');$('#studio-test').disabled=!testing.length;$('#studio-noise').disabled=!testing.length;$$('[data-pattern]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pattern===pattern)));reset();setTool(pattern==='blank'?'0':'probe');announce(pattern==='blank'?'A blank canvas. Draw examples of both classes, then start learning. There is no unseen accuracy for your drawing until you provide an independent test set.':'A fresh pattern and independent unseen examples. Start learning, then reveal the unseen data to check whether it learned the rule.');}
- function setTool(next){tool=next;$$('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===tool)));canvas.dataset.drawing=String(tool!=='probe');$('#studio-field-help').textContent=tool==='probe'?'Move across the field to query the model. Select Teach A or B to draw new examples.':`Draw class ${tool==='0'?'A':'B'} examples. Keyboard: arrows move the cursor, Space places a point. Touch: switch to Probe to scroll.`;}
- function addPoint(p){if(showTest){showTest=false;$('#studio-test').setAttribute('aria-pressed','false');if(!selected)$('#studio-field-label').textContent='PREDICTION FIELD';}if(data.training.length>=500){announce('The canvas has 500 examples. Undo a stroke or choose a fresh pattern to make more room.');return;}data.training.push({...p,label:Number(tool)});lastPoint={...p};history=[];lastHistoryEpoch=-1;updateMetrics();schedule();}
+ function reset({rebuild=false}={}){version++;epoch=0;running=false;history=[];lastHistoryEpoch=-1;network=new NeuralNetwork(++seed,width);selected=null;if(rebuild)buildNetwork();features.forEach(f=>f.el.setAttribute('aria-pressed','false'));$('#studio-show-output').hidden=true;$('#studio-field-label').textContent=showTest?'Unseen examples':'Prediction field';$('#studio-neuron-hint').textContent='Each window shows one learned feature.';send('reset',{seed,width,points:data.training});send('rate',{rate});send('visible',{visible:visible&&!document.hidden});status();updateMetrics(true);schedule();}
+ function loadPattern(next){pattern=next;data=makeExperiment(pattern);testing=noisyExamples(data.testing,noise);strokes=[];$('#studio-undo').disabled=true;showTest=false;$('#studio-test').setAttribute('aria-pressed','false');$('#studio-test').disabled=!testing.length;$('#studio-noise').disabled=!testing.length;$('#studio-pattern').value=pattern;reset();setStage('learn');setTool(pattern==='blank'?'0':'probe');announce(pattern==='blank'?'A blank canvas. Draw examples of both classes, then start learning. There is no unseen accuracy for your drawing until you provide an independent test set.':'A fresh pattern and independent unseen examples. Start learning, then reveal the unseen data to check whether it learned the rule.');}
+ function setTool(next){tool=next;$$('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===tool)));canvas.dataset.drawing=String(tool!=='probe');$('#studio-field-help').textContent=tool==='probe'?'Choose a class to add examples. Probe lets you explore predictions.':`Draw class ${tool==='0'?'A':'B'}. Arrow keys move; Space adds a point. On touch, choose Probe to scroll.`;}
+ function addPoint(p){if(showTest){showTest=false;$('#studio-test').setAttribute('aria-pressed','false');if(!selected)$('#studio-field-label').textContent='Prediction field';}if(data.training.length>=500){announce('The canvas has 500 examples. Undo a stroke or choose a fresh pattern to make more room.');return;}data.training.push({...p,label:Number(tool)});lastPoint={...p};history=[];lastHistoryEpoch=-1;updateMetrics();schedule();}
  function finishStroke(){if(!drawing)return;drawing=false;if(data.training.length>strokeStart){strokes.push(strokeStart);$('#studio-undo').disabled=false;send('samples',{points:data.training});announce('Examples added. Start learning to update the boundary with your changes.');}lastPoint=null;}
  canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;const b=canvas.getBoundingClientRect();probe={...pixelToPoint(e.clientX-b.left,e.clientY-b.top),active:true};if(tool!=='probe'){e.preventDefault();setRunning(false);strokeStart=data.training.length;drawing=true;canvas.setPointerCapture(e.pointerId);addPoint(probe);}schedule();});
  canvas.addEventListener('pointermove',e=>{const b=canvas.getBoundingClientRect();probe={...pixelToPoint(e.clientX-b.left,e.clientY-b.top),active:true};if(drawing&&(!lastPoint||Math.hypot(probe.x-lastPoint.x,probe.y-lastPoint.y)>.065))addPoint(probe);else schedule();});canvas.addEventListener('pointerup',finishStroke);canvas.addEventListener('pointercancel',finishStroke);canvas.addEventListener('lostpointercapture',finishStroke);canvas.addEventListener('pointerleave',()=>{if(!drawing){probe.active=false;schedule();}});
  canvas.addEventListener('keydown',e=>{const dirs={ArrowLeft:[-.06,0],ArrowRight:[.06,0],ArrowUp:[0,.06],ArrowDown:[0,-.06]};if(dirs[e.key]){e.preventDefault();probe={x:Math.max(-1,Math.min(1,probe.x+dirs[e.key][0])),y:Math.max(-1,Math.min(1,probe.y+dirs[e.key][1])),active:true};schedule();}else if((e.key===' '||e.key==='Enter')&&tool!=='probe'){e.preventDefault();setRunning(false);strokeStart=data.training.length;drawing=true;addPoint(probe);finishStroke();}});
+ $$('[data-studio-stage]').forEach((tab,index,tabs)=>{
+  tab.addEventListener('click',()=>setStage(tab.dataset.studioStage));
+  tab.addEventListener('keydown',event=>{let next;if(event.key==='ArrowRight')next=(index+1)%tabs.length;else if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();tabs[next].focus();setStage(tabs[next].dataset.studioStage);});
+ });
+ for(const id of ['#studio-advanced','#studio-history'])$(id).addEventListener('toggle',resize);
  $('#studio-train').addEventListener('click',()=>{if(epoch>=3000)reset();setRunning(!running);});$('#studio-reset').addEventListener('click',()=>{reset();announce('The weights are fresh. Your examples and test set are preserved.');});
- $$('[data-pattern]').forEach(b=>b.addEventListener('click',()=>loadPattern(b.dataset.pattern)));$$('[data-tool]').forEach(b=>b.addEventListener('click',()=>setTool(b.dataset.tool)));
+ $('#studio-pattern').addEventListener('change',e=>loadPattern(e.target.value));$$('[data-tool]').forEach(b=>b.addEventListener('click',()=>setTool(b.dataset.tool)));
  $('#studio-undo').addEventListener('click',()=>{if(!strokes.length)return;setRunning(false);data.training.splice(strokes.pop());$('#studio-undo').disabled=!strokes.length;history=[];lastHistoryEpoch=-1;send('samples',{points:data.training});updateMetrics();schedule();announce('Last stroke removed. Continue learning with the remaining examples.');});
  $('#studio-width').addEventListener('change',e=>{width=Number(e.target.value);reset({rebuild:true});resize();announce('Network resized with fresh weights. Start learning to compare its capacity on the same data.');});
  $('#studio-rate').addEventListener('input',e=>{rate=Number(e.target.value)*.01;$('#studio-rate-value').textContent=rate.toFixed(3);send('rate',{rate});});
- $('#studio-test').addEventListener('click',()=>{showTest=!showTest;$('#studio-test').setAttribute('aria-pressed',String(showTest));$('#studio-field-label').textContent=selected?`LAYER ${selected.layer} · NEURON ${selected.index+1} ACTIVATION`:showTest?'UNSEEN EXAMPLES · PREDICTIONS':'PREDICTION FIELD';announce(showTest?'Hollow dots are independent examples, never used for training. The extra ring marks a wrong prediction. Add test noise below to challenge the rule.':'Showing the training examples again. Filled dots are the examples used to update the network.');schedule();});
- $('#studio-noise').addEventListener('input',e=>{setRunning(false);noise=Number(e.target.value)/100;$('#studio-noise-value').textContent=e.target.value+'%';testing=noisyExamples(data.testing,noise);showTest=true;$('#studio-test').setAttribute('aria-pressed','true');if(!selected)$('#studio-field-label').textContent='UNSEEN EXAMPLES · PREDICTIONS';history=[];lastHistoryEpoch=-1;updateMetrics(true);schedule();announce('Only the unseen examples moved. The model and training data have not changed; watch what happens to unseen accuracy.');});
+ $('#studio-test').addEventListener('click',()=>{showTest=!showTest;$('#studio-test').setAttribute('aria-pressed',String(showTest));$('#studio-field-label').textContent=selected?`Layer ${selected.layer} · Neuron ${selected.index+1}`:showTest?'Unseen examples':'Prediction field';announce(showTest?'Hollow dots are independent examples, never used for training. The extra ring marks a wrong prediction. Add test noise below to challenge the rule.':'Showing the training examples again. Filled dots are the examples used to update the network.');updateMetrics();schedule();});
+ $('#studio-noise').addEventListener('input',e=>{setRunning(false);noise=Number(e.target.value)/100;$('#studio-noise-value').textContent=e.target.value+'%';testing=noisyExamples(data.testing,noise);showTest=true;$('#studio-test').setAttribute('aria-pressed','true');if(!selected)$('#studio-field-label').textContent='Unseen examples';history=[];lastHistoryEpoch=-1;updateMetrics(true);schedule();announce('Only the unseen examples moved. The model and training data have not changed; watch what happens to unseen accuracy.');});
  $('#studio-show-output').addEventListener('click',()=>{if(selected)inspect(selected.layer,selected.index);});$('#studio-output').addEventListener('click',()=>{if(selected)inspect(selected.layer,selected.index);else{probe.active=true;schedule();announce('The output is the model’s probability of class B at the cursor. Move the cursor to ask a different question.');}});
  worker.onmessage=({data:message})=>{if(message.version!==version)return;network.restore(message.state);epoch=message.epoch;running=message.running;status();updateMetrics(true);schedule();};
  worker.onerror=()=>{workerFailed=true;running=false;status();$('#studio-train').disabled=true;announce('Training could not start in this browser. The field is still interactive; refresh to retry.');};
  new ResizeObserver(resize).observe($('#studio-workspace')||$('#neural-console'));
  new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;send('visible',{visible:visible&&!document.hidden});if(visible)schedule();},{threshold:.02}).observe($('#neural-console'));
  document.addEventListener('visibilitychange',()=>send('visible',{visible:visible&&!document.hidden}));
- buildNetwork();reset();resize();
+ buildNetwork();reset();setStage('learn');
 }
