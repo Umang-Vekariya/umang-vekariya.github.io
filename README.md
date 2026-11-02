@@ -38,3 +38,6 @@ The playground is now a browser-only teaching experiment: draw labeled examples 
 `neural-studio.js` owns the interface and inference views; `neural-worker.js` trains off the main thread and suspends while the studio is offscreen or the tab is hidden. `model.js` implements the tanh network and backpropagation. Tests check gradients, generalization, snapshot parity, test-data immutability, and worker resets.
 
 The studio now presents Learn, Inspect, and Challenge as separate accessible tabs around a persistent prediction field. Learn contains the pattern choice and drawing tools; network tuning and loss history start collapsed. Inspect reveals the network, and Challenge pauses training before showing independent test examples and noise controls. Switching tabs preserves data, weights, and training progress. Captions and controls use a more spacious layout and larger type.
+
+
+The editorial visual layer lives in `art-direction.css` and `art-direction.js`: isolated opening sculpture, copper workshop entrance, staggered ivory library, green learning studio, and contrast-aware navigation. Workshop camera travel is deterministic in `workshopTravel()`; the outgoing scroll span resolves exactly to the next station, without a separate timed flight. Reduced-motion mode uses the stationary station shots.
