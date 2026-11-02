@@ -1,9 +1,9 @@
-import './art-direction.js?v=3';
+import './project-index.js?v=1';
 import {initContentHover} from './content-hover.js?v=3';
 import {projectProof} from './project-proof.js';
 import {createProjectPreviews} from './project-previews.js?v=2';
 import {projectStories} from './project-stories.js';
-import {createFlow} from './flow.js?v=20';
+import {createFlow} from './flow.js?v=21';
 import {initWorkshopNav} from './workshop-nav.js?v=1';
 import {demoContent} from './demo-content.js';
 import {createDemoEngine} from './project-demos.js';
@@ -73,10 +73,9 @@ $$('dialog').forEach(dialog=>{
 });
 
 const menu=$('.mobile-menu'),toggle=$('.menu-toggle');
-function closeMenu(){document.querySelector('main').inert=false;document.querySelector('.footer').inert=false;document.documentElement.classList.remove('menu-open');menu.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Open navigation');}
-toggle.addEventListener('click',()=>{const open=menu.hidden;menu.hidden=!open;document.documentElement.classList.toggle('menu-open',open);document.querySelector('main').inert=open;document.querySelector('.footer').inert=open;if(open&&!root.classList.contains('motion-off'))$$('a',menu).forEach((a,i)=>a.animate([{opacity:0,transform:'translateY(24px)'},{opacity:1,transform:'translateY(0)'}],{duration:550,delay:i*40,easing:'cubic-bezier(.22,1,.36,1)',fill:'backwards'}));toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Close navigation':'Open navigation');});
+function closeMenu(){menu.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Open navigation');}
+toggle.addEventListener('click',()=>{const open=menu.hidden;menu.hidden=!open;toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Close navigation':'Open navigation');});
 $$('a',menu).forEach(a=>a.addEventListener('click',closeMenu));
-document.addEventListener('keydown',e=>{if(e.key!=='Tab'||menu.hidden)return;const items=[toggle,...$$('a',menu)];const n=items.indexOf(document.activeElement);if(e.shiftKey&&(n<=0)){e.preventDefault();items.at(-1).focus();}else if(!e.shiftKey&&(n<0||n===items.length-1)){e.preventDefault();items[0].focus();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!menu.hidden){closeMenu();toggle.focus();}});
 
 const commands=$('#command-dialog'),search=$('#command-search');
@@ -120,6 +119,6 @@ addEventListener('scroll',()=>{if(!scrollFrame){scrollFrame=true;requestAnimatio
 // Load the interactive studio only as the visitor approaches it.
 let labStarted=false;const labEntry=new IntersectionObserver(entries=>{if(!labStarted&&entries.some(e=>e.isIntersecting)){labStarted=true;import('./neural-studio.js?v=3').then(({initNeuralStudio})=>initNeuralStudio()).catch(error=>{console.error('Neural studio could not start:',error);document.querySelector('#studio-insight').textContent='The experiment could not load. Refresh the page to try again.';});labEntry.disconnect();}},{rootMargin:'250px'});labEntry.observe(document.querySelector('#lab'));
 if(new URL(location.href).searchParams.has('audit'))import('./performance-audit.js').then(m=>m.startPerformanceAudit());
-let worldPromise;function ensureWorld(){if(root.classList.contains('quick-view')||worldPromise)return;worldPromise=new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))).then(()=>import('./world.bundle.js?v=23')).then(({initWorld})=>initWorld(demoEngine)).catch(error=>{console.error('Portfolio scene could not start:',error);root.classList.add('world-fallback');});}addEventListener('portfolio-view',ensureWorld);ensureWorld();
+let worldPromise;function ensureWorld(){if(root.classList.contains('quick-view')||worldPromise)return;worldPromise=new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))).then(()=>import('./world.bundle.js?v=24')).then(({initWorld})=>initWorld(demoEngine)).catch(error=>{console.error('Portfolio scene could not start:',error);root.classList.add('world-fallback');});}addEventListener('portfolio-view',ensureWorld);ensureWorld();
 
 initContentHover();

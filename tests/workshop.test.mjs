@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {workshopStations,workshopShot,workshopTravel,stationMapPoint} from '../dist/workshop-layout.js';
+import {workshopStations,workshopShot,stationMapPoint} from '../dist/workshop-layout.js';
 import {projects} from '../dist/portfolio-data.js';
 import {createProjectWorlds} from '../dist/project-worlds.js';
 import {createWorkshop} from '../dist/workshop-architecture.js';
@@ -122,24 +122,4 @@ test('station screens remain visible and unobstructed in the shared workshop',()
    }
   }
  }finally{globalThis.document=original;}
-});
-
-
-test('scroll-driven station travel meets the next pose continuously and reverses exactly',()=>{
- for(const options of [{portrait:false,aspect:1.78},{portrait:true,aspect:.46}]){
-  for(let index=0;index<7;index++){
-   assert.deepEqual(workshopTravel(index,{...options,phase:2.6,motion:false}),workshopShot(index,{...options,phase:2.6}));
-   const end=workshopTravel(index,{...options,phase:2.6}),next=workshopTravel(index+1,{...options,phase:0});
-   for(const key of ['position','target'])for(let axis=0;axis<3;axis++)assert.ok(Math.abs(end[key][axis]-next[key][axis])<1e-8);
-   let previous=workshopTravel(index,{...options,phase:2.15});
-   const poses=[];
-   for(let step=1;step<=450;step++){
-    const pose=workshopTravel(index,{...options,phase:2.15+step*.001});
-    assert.ok(Math.hypot(...pose.position.map((v,i)=>v-previous.position[i]))<.18,'travel jumps between scroll positions');
-    assert.ok([...pose.position,...pose.target].every(Number.isFinite));poses.push(pose);previous=pose;
-   }
-   for(let step=450;step>=1;step--)assert.deepEqual(workshopTravel(index,{...options,phase:2.15+step*.001}),poses[step-1]);
-  }
-  assert.deepEqual(workshopTravel(7,{...options,phase:2.6}),workshopShot(7,{...options,phase:2.6}));
- }
 });

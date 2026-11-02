@@ -37,10 +37,10 @@ export function createFlow(projects,escapeHTML,engine){
   const mobileProfile=matchMedia('(max-width:760px), (max-height:620px)').matches;
   const profileTarget=mobileProfile?profilePhaseAtScroll(scrollY,profilePanels.map(p=>p.getBoundingClientRect().top+scrollY-80)):profileAtProgress((scrollY-pb.start)/pb.range).phase;
   const profileEntry=smoother(1,0,pb.top/innerHeight),gatewayEntry=smoother(1,0,gb.top/innerHeight);
-  profilePhase=profileTarget;if(Math.abs(profileTarget-profilePhase)<.002)profilePhase=profileTarget;
+  profilePhase=motion?profilePhase+(profileTarget-profilePhase)*.15:profileTarget;if(Math.abs(profileTarget-profilePhase)<.002)profilePhase=profileTarget;
   const it=clamp((scrollY-ib.start)/ib.range)*2.6,story=storyAtProgress((scrollY-wb.start)/wb.range,projects.length),pt=story.phase;
   if(story.index!==index&&wb.top<innerHeight*.6){selectProject(story.index,false);projectPhase=pt;}
-  introPhase=it;projectPhase=pt;
+  introPhase=motion?introPhase+(it-introPhase)*.15:it;projectPhase=motion?projectPhase+(pt-projectPhase)*.15:pt;
   if(Math.abs(it-introPhase)<.002)introPhase=it;if(Math.abs(pt-projectPhase)<.002)projectPhase=pt;
   mode=wb.top<innerHeight*.6&&wb.bottom>0?'project':ib.bottom>innerHeight*.35&&ib.top<innerHeight?'intro':pb.bottom>innerHeight*.35&&pb.top<innerHeight?'profile':gb.bottom>0&&gb.top<innerHeight?'gateway':'none';
   const gatewayPhase=clamp((scrollY-gb.start)/gb.range);gateway.dataset.phase=gatewayPhase.toFixed(3);
@@ -55,7 +55,7 @@ export function createFlow(projects,escapeHTML,engine){
   if(lastStep!==step){if(motion&&lastStep>=0&&mode==='project')document.querySelector('.demo-stage-detail').animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:380,easing:'cubic-bezier(.2,.7,.2,1)'});lastStep=step;const s=demoContent[index].steps[step];document.querySelector('#demo-step-number').textContent=`0${step+1} / ${s[0].toUpperCase()}`;document.querySelector('#demo-step-title').textContent=s[1];document.querySelector('#demo-step-description').textContent=s[2];document.querySelectorAll('[data-demo-step]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.demoStep)===step)));}
   document.querySelector('.journey-controls').inert=mode!=='intro';document.querySelector('.projects-sticky').inert=mode!=='project';
   const projectEntry=smooth(innerHeight*.65,innerHeight*.08,wb.top),projectExit=smooth(0,innerHeight*.65,wb.bottom);
-  work.style.setProperty('--project-entry',String(projectEntry));work.style.setProperty('--project-visibility',String(projectEntry*projectExit));work.style.setProperty('--station-copy',String(motion&&index<projects.length-1?1-smooth(2.15,2.58,projectPhase):1));root.style.setProperty('--intro-frame',String(motion?smooth(0,.75,introPhase):0));
+  work.style.setProperty('--project-entry',String(projectEntry));
   const exit=mode==='intro'||mode==='profile'||mode==='gateway'?1:mode==='project'?projectExit:0;
   intro.style.setProperty('--journey-progress',introPhase/2.6);intro.style.setProperty('--scene-exit',String(mode==='intro'?exit:0));root.style.setProperty('--scene-exit',String(exit));root.dataset.sceneMode=mode;
   work.style.setProperty('--demo-progress',(index+clamp(projectPhase/2.6))/projects.length);work.style.setProperty('--chapter-progress',projectPhase/2.6);work.style.setProperty('--step-opacity',String(motion?1-.45*smooth(.15,.5,Math.abs(projectPhase-Math.round(projectPhase))):1));
