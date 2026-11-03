@@ -2,11 +2,11 @@
   <title>UV — Umang Vekariya</title>
   <defs>
     <linearGradient id="uv-satin" x1="17" y1="51" x2="180" y2="65" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#E8E2D6"/>
-      <stop offset=".3" stop-color="#E1C8AB"/>
-      <stop offset=".57" stop-color="#D5A080"/>
-      <stop offset=".82" stop-color="#C7785A"/>
-      <stop offset="1" stop-color="#E77B5C"/>
+      <stop stop-color="#EDF2FF"/>
+      <stop offset=".3" stop-color="#B4C5FF"/>
+      <stop offset=".57" stop-color="#7898FF"/>
+      <stop offset=".82" stop-color="#174AFF"/>
+      <stop offset="1" stop-color="#D4FF35"/>
     </linearGradient>
     <mask id="uv-ribbon-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="195" height="116">
       <path fill="#fff" d="M0 0h195v116H0z"/>

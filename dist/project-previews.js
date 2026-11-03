@@ -2,7 +2,7 @@ import {interpolateRSSI,aggregateFrames,Outbox,BookingQueue} from './demo-models
 import {drawReconstruction} from './assets/replay-engine.js';
 
 // One visible preview runs at a time. No backend, camera or model is called.
-const ink='#e8e2d6',muted='#b9ab97',copper='#e18e6b',green='#9ec4af';
+const ink='#edf3ff',muted='#8ea9dd',copper='#487aff',green='#d4ff35';
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const cache=new Map();
 async function json(path){if(!cache.has(path))cache.set(path,fetch(new URL(path,import.meta.url)).then(r=>{if(!r.ok)throw new Error('Preview record unavailable');return r.json();}).catch(e=>{cache.delete(path);throw e;}));return cache.get(path);}
@@ -10,7 +10,7 @@ const stages={wnams:['Position','Interpolate','Inspect'],deepfake:['Extract','Sc
 
 function drawPreview(item,seconds){
  const {ctx:c,id,data}=item,t=seconds%10,step=Math.min(2,Math.floor(t/3.34));
- c.clearRect(0,0,800,480);c.fillStyle='#101111';c.fillRect(0,0,800,480);
+ c.clearRect(0,0,800,480);c.fillStyle='#03091f';c.fillRect(0,0,800,480);
  function text(s,x,y,size=24,color=ink,mono=false){c.fillStyle=color;c.font=`${mono?'400':'500'} ${size}px ${mono?'"IBM Plex Mono",monospace':'"DM Sans",sans-serif'}`;c.fillText(String(s),x,y);}
  function line(x,y,x2,y2,color='#6c594755',width=1){c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(x,y);c.lineTo(x2,y2);c.stroke();}
  function box(x,y,w,h,color='#1d1d1a',stroke='#8a705744'){c.fillStyle=color;c.beginPath();c.roundRect(x,y,w,h,5);c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=1;c.stroke();}}

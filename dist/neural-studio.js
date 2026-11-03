@@ -16,7 +16,7 @@ export function initNeuralStudio(){
  const worker=new Worker(new URL('./neural-worker.js?v=1',import.meta.url),{type:'module'});
  const heat=document.createElement('canvas');heat.width=128;heat.height=128;const hc=heat.getContext('2d'),image=hc.createImageData(128,128),fieldValues=new Float32Array(128*128);
  let pattern='spiral',data=makeExperiment('spiral'),testing=data.testing,network=new NeuralNetwork(42,6),seed=42,version=0,epoch=0,running=false,visible=false,stage='learn',width=6,rate=.025,tool='probe',showTest=false,noise=0,selected=null,w=0,h=0,probe={x:0,y:0,active:false},lastPoint=null,drawing=false,strokeStart=0,strokes=[],features=[],history=[],lastHistoryEpoch=-1,queued=false,workerFailed=false;
- const palette={a:[174,211,194],b:[231,151,115]};
+ const palette={a:[76,127,255],b:[211,255,53]};
  const percentage=v=>v===null?'—':Math.round(v*100)+'%';
  function send(type,extra={}){worker.postMessage({type,version,...extra});}
  function announce(message){const el=$('#studio-insight');if(el.textContent!==message)el.textContent=message;}
@@ -46,14 +46,14 @@ export function initNeuralStudio(){
  function pixelToPoint(x,y){const pad=38;return {x:Math.max(-1,Math.min(1,(x-pad)/(w-pad*2)*2-1)),y:Math.max(-1,Math.min(1,1-(y-pad)/(h-pad*2)*2))};}
  function render(){
   if(!w||!h)return;
-  ctx.fillStyle='#0c171c';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#030a20';ctx.fillRect(0,0,w,h);
   for(let iy=0;iy<128;iy++)for(let ix=0;ix<128;ix++){
    const x=ix/127*2-1,y=1-iy/127*2,raw=selected?network.activation(x,y,selected.layer,selected.index):network.forward(x,y),p=selected?(raw+1)/2:raw,confidence=Math.abs(p-.5)*2,ixy=iy*128+ix,i=ixy*4;
    fieldValues[ixy]=p;
-   for(let k=0;k<3;k++){const col=palette.a[k]*(1-p)+palette.b[k]*p;image.data[i+k]=Math.round([14,25,29][k]+col*(.035+.25*confidence));}image.data[i+3]=255;
+   for(let k=0;k<3;k++){const col=palette.a[k]*(1-p)+palette.b[k]*p;image.data[i+k]=Math.round([4,9,27][k]+col*(.035+.25*confidence));}image.data[i+3]=255;
   }
   hc.putImageData(image,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(heat,38,38,w-76,h-76);
-  ctx.lineWidth=.6;ctx.strokeStyle='#bbd8ce0c';for(let i=0;i<=8;i++){const v=38+i/8*(w-76),u=38+i/8*(h-76);ctx.beginPath();ctx.moveTo(v,38);ctx.lineTo(v,h-38);ctx.moveTo(38,u);ctx.lineTo(w-38,u);ctx.stroke();}
+  ctx.lineWidth=.6;ctx.strokeStyle='#83a8ff15';for(let i=0;i<=8;i++){const v=38+i/8*(w-76),u=38+i/8*(h-76);ctx.beginPath();ctx.moveTo(v,38);ctx.lineTo(v,h-38);ctx.moveTo(38,u);ctx.lineTo(w-38,u);ctx.stroke();}
   // Interpolate the p=0.5 contour between samples so the boundary stays smooth.
   if(!selected){
    const dx=(w-76)/127,dy=(h-76)/127;ctx.beginPath();
@@ -65,14 +65,14 @@ export function initNeuralStudio(){
     if(crossings.length===2){ctx.moveTo(...crossings[0]);ctx.lineTo(...crossings[1]);}
     else if(crossings.length===4){const same=(values[0]>=.5)===(values.reduce((a,b)=>a+b,0)/4>=.5),pairs=same?[[0,1],[2,3]]:[[0,3],[1,2]];for(const [a,b] of pairs){ctx.moveTo(...crossings[a]);ctx.lineTo(...crossings[b]);}}
    }
-   ctx.strokeStyle='#ddd9c48c';ctx.lineWidth=1;ctx.stroke();
+   ctx.strokeStyle='#d8e5ffb0';ctx.lineWidth=1;ctx.stroke();
   }
   const samples=showTest?testing:data.training;
-  for(const p of samples){const [x,y]=pointToPixel(p);ctx.beginPath();ctx.arc(x,y,showTest?3.5:2.8,0,Math.PI*2);ctx.fillStyle=p.label?'#e9a17d':'#bfdbcc';ctx.strokeStyle=p.label?'#e9a17d':'#bfdbcc';ctx.lineWidth=showTest?1.35:1;
-   if(showTest)ctx.stroke();else{ctx.fill();ctx.strokeStyle='#101b20';ctx.stroke();}
-   if(showTest&&(network.forward(p.x,p.y)>=.5?1:0)!==p.label){ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.strokeStyle='#e49a7944';ctx.lineWidth=1;ctx.stroke();}
+  for(const p of samples){const [x,y]=pointToPixel(p);ctx.beginPath();ctx.arc(x,y,showTest?3.5:2.8,0,Math.PI*2);ctx.fillStyle=p.label?'#d4ff35':'#6e9aff';ctx.strokeStyle=p.label?'#d4ff35':'#6e9aff';ctx.lineWidth=showTest?1.35:1;
+   if(showTest)ctx.stroke();else{ctx.fill();ctx.strokeStyle='#03091c';ctx.stroke();}
+   if(showTest&&(network.forward(p.x,p.y)>=.5?1:0)!==p.label){ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.strokeStyle='#d4ff3566';ctx.lineWidth=1;ctx.stroke();}
   }
-  if(probe.active){const [x,y]=pointToPixel(probe);ctx.setLineDash([3,4]);ctx.strokeStyle='#e0e0c16b';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(x,38);ctx.lineTo(x,h-38);ctx.moveTo(38,y);ctx.lineTo(w-38,y);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.strokeStyle='#eee7db';ctx.stroke();}
+  if(probe.active){const [x,y]=pointToPixel(probe);ctx.setLineDash([3,4]);ctx.strokeStyle='#c3d8ff80';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(x,38);ctx.lineTo(x,h-38);ctx.moveTo(38,y);ctx.lineTo(w-38,y);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.strokeStyle='#edf2ff';ctx.stroke();}
   updateProbe();drawNetwork();
  }
  function updateProbe(){
@@ -80,7 +80,7 @@ export function initNeuralStudio(){
   const p=network.forward(probe.x,probe.y);
   $('#studio-output').textContent=Math.round(p*100)+'%';$('#studio-output').title='Probability of class B at the selected position';
   const values=[[probe.x,probe.y],network.h1,network.h2,[p]];
-  features.forEach(f=>{const activation=values[f.layer][f.index];f.el.style.borderColor=activation>=0?'#b3d2c388':'#e49a7988';});
+  features.forEach(f=>{const activation=values[f.layer][f.index];f.el.style.borderColor=activation>=0?'#d4ff3599':'#668cff99';});
   if(probe.active){$('#studio-probe').firstElementChild.textContent=`x ${probe.x.toFixed(2)} · y ${probe.y.toFixed(2)}`;$('#studio-probe').lastElementChild.textContent=`Class ${p>=.5?'B':'A'} · ${Math.round(Math.max(p,1-p)*100)}% confidence`;}
  }
  function colorFeature(value){const t=(value+1)/2;return palette.a.map((a,i)=>Math.round(a*(1-t)+palette.b[i]*t));}
@@ -91,17 +91,17 @@ export function initNeuralStudio(){
   for(let l=0;l<3;l++)for(let j=0;j<layers[l].length;j++)for(let k=0;k<layers[l+1].length;k++){
    const weight=l===0?network.w1[k][j]:l===1?network.w2[k][j]:network.w3[j],a=center(layers[l][j]),b=center(layers[l+1][k]);
    const chosen=selected&&(selected.layer===l&&selected.index===j||selected.layer===l+1&&selected.index===k),opacity=Math.min(.42,.04+Math.abs(weight)*.10)*(selected&&!chosen ? .35 : 1);
-   wc.strokeStyle=weight>=0?`rgba(179,210,195,${opacity})`:`rgba(228,154,121,${opacity})`;wc.lineWidth=chosen?1.3:.7;wc.beginPath();wc.moveTo(...a);wc.bezierCurveTo(a[0]+22,a[1],b[0]-22,b[1],...b);wc.stroke();
+   wc.strokeStyle=weight>=0?`rgba(212,255,53,${opacity})`:`rgba(76,127,255,${opacity})`;wc.lineWidth=chosen?1.3:.7;wc.beginPath();wc.moveTo(...a);wc.bezierCurveTo(a[0]+22,a[1],b[0]-22,b[1],...b);wc.stroke();
   }
   for(const f of features){const im=f.ctx.createImageData(16,16);for(let y=0;y<16;y++)for(let x=0;x<16;x++){const value=network.activation(x/15*2-1,1-y/15*2,f.layer,f.index),c=colorFeature(value),i=(y*16+x)*4;im.data[i]=c[0]*.6;im.data[i+1]=c[1]*.6;im.data[i+2]=c[2]*.6;im.data[i+3]=255;}f.ctx.putImageData(im,0,0);}
  }
  function drawLoss(){
-  const r=loss.getBoundingClientRect(),ch=r.height,cw=r.width;if(!cw||!ch)return;lc.clearRect(0,0,cw,ch);lc.lineWidth=.6;lc.strokeStyle='#b5d2c719';for(let i=1;i<4;i++){lc.beginPath();lc.moveTo(0,ch*i/4);lc.lineTo(cw,ch*i/4);lc.stroke();}
+  const r=loss.getBoundingClientRect(),ch=r.height,cw=r.width;if(!cw||!ch)return;lc.clearRect(0,0,cw,ch);lc.lineWidth=.6;lc.strokeStyle='#7a9cff25';for(let i=1;i<4;i++){lc.beginPath();lc.moveTo(0,ch*i/4);lc.lineTo(cw,ch*i/4);lc.stroke();}
   if(history.length<2)return;const max=Math.max(.2,...history.flatMap(v=>[v.train||0,v.test||0]));
-  for(const [key,color] of [['train','#e49a79'],['test','#b3d2c3']]){lc.beginPath();let started=false;history.forEach((v,i)=>{if(v[key]===null)return;const x=i/(history.length-1)*cw,y=ch-3-v[key]/max*(ch-6);started?lc.lineTo(x,y):lc.moveTo(x,y);started=true;});lc.strokeStyle=color;lc.lineWidth=1.4;lc.stroke();}
+  for(const [key,color] of [['train','#668cff'],['test','#d4ff35']]){lc.beginPath();let started=false;history.forEach((v,i)=>{if(v[key]===null)return;const x=i/(history.length-1)*cw,y=ch-3-v[key]/max*(ch-6);started?lc.lineTo(x,y):lc.moveTo(x,y);started=true;});lc.strokeStyle=color;lc.lineWidth=1.4;lc.stroke();}
  }
  function schedule(){if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;render();});}}
- function inspect(layer,index){selected=selected?.layer===layer&&selected.index===index?null:{layer,index};features.forEach(f=>f.el.setAttribute('aria-pressed',String(selected?.layer===f.layer&&selected?.index===f.index)));$('#studio-show-output').hidden=!selected;$('#studio-field-label').textContent=selected?`Layer ${layer} · Neuron ${index+1}`:showTest?'Unseen examples':'Prediction field';$('#studio-neuron-hint').textContent=selected?`Layer ${layer}, neuron ${index+1}: mint means negative activation; copper means positive. The pattern changes as it learns.`:'Each window shows one learned feature.';schedule();}
+ function inspect(layer,index){selected=selected?.layer===layer&&selected.index===index?null:{layer,index};features.forEach(f=>f.el.setAttribute('aria-pressed',String(selected?.layer===f.layer&&selected?.index===f.index)));$('#studio-show-output').hidden=!selected;$('#studio-field-label').textContent=selected?`Layer ${layer} · Neuron ${index+1}`:showTest?'Unseen examples':'Prediction field';$('#studio-neuron-hint').textContent=selected?`Layer ${layer}, neuron ${index+1}: blue means negative activation; lime means positive. The pattern changes as it learns.`:'Each window shows one learned feature.';schedule();}
  function setStage(next){
   if(!['learn','inspect','challenge'].includes(next))return;
   finishStroke();if(next==='challenge'&&running)setRunning(false);stage=next;$('#neural-console').dataset.stage=stage;

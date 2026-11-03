@@ -1,3 +1,5 @@
+> Historical editorial checkpoint, superseded by the requested full 3D world. See [the spatial gallery record](spatial-gallery.md).
+
 # The Art of Engineering — 3 November 2026
 
 ## Baseline and audit
