@@ -1,18 +1,17 @@
-# Umang Vekariya — Living Lab
+# Umang Vekariya — The Art of Engineering
 
-Portfolio: https://umang-vekariya.github.io/
+[Portfolio](https://umang-vekariya.github.io/)
 
-An original cinematic portfolio built around an identity aperture, spatial personal overview, and eight connected project installations. Scroll moves through curved 3D camera rails; direct project selection uses an interruptible camera flight. Approaching a display leads into the actual accessible case study, canvas or browser application, with a return to the same project state. The approved ivory project index, Quick View, command palette, résumé, certificates and contacts remain available.
+An editorial portfolio of intelligent systems, practical software, and open experiments. One original metallic sculpture introduces Umang; native reading sections introduce the person and education before an oversized, screenshot-led project index. Project images expand into accessible case studies with the original interactive demonstrations and browser applications. The Neural Studio remains a real, worker-trained network.
 
-
-## Development
+## Run and verify
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open http://localhost:4176/. Source files and the ready-to-publish output are in `dist/`. After editing scene modules, run:
+Open http://127.0.0.1:4176/. The static source and publishable output are in `dist/`.
 
 ```sh
 npm run build
@@ -20,29 +19,31 @@ npm run check
 npm test
 ```
 
-`camera-rig.js` is the sole camera owner: scroll rails, quaternion orientation, bounded banking, direct navigation, display focus and return. `flow.js` maps native scroll to chapter progress. `workshop-architecture.js` builds open exhibition islands; `project-worlds.js` retains the live project textures and state-linked props. `lab-effects.js` supplies the original GPU aperture reconstruction and architectural geometry. `spatial-dialog.js` matches projected display bounds to real HTML dialog entrances. `section-navigation.js` handles long section jumps without scrolling through every intermediate demo. No additional animation or scrolling framework is required.
+The build bundles only `engineering-form.js` and its Three.js dependencies. Commit the generated `dist/engineering-form.bundle.js` alongside the source. The existing GitHub Pages workflow uploads `dist/` on a push to `main`; no server, keys, or remote build is required.
 
-`profile-layout.js` and `profile-foyer.js` retain the personal installations, with native labels from `spatial-type.js`. `living-lab.css` and `living-lab.js` own the visual and interaction layer; the approved library remains isolated in `project-index.css` and `project-index.js`.
+## Presentation architecture
 
-## Deployment
+- `engineering.css`: one presentation stylesheet, with phone, tablet and desktop compositions. `neural-studio.css` retains the tool's underlying control layout.
+- `engineering.js`: factual content, navigation, accessible dialogs, focus return, project selection, one shared-image transition, native scroll and visibility scheduling.
+- `engineering-motion.js`: the deterministic, reversible title-frame motion and image-frame bounds. No scroll hijacking, secondary camera controller or animation framework.
+- `engineering-form.js`: one original closed folded band, a morph to an aperture, studio lighting and subtle pointer response. It draws on scroll or interaction and stops after settling. It is not a permanent background scene.
+- `portfolio-data.js`, `project-stories.js`, `project-proof.js` and `demo-content.js`: the retained genuine content and scope labels.
+- `project-demos.js`, `demo-models.js`, `project-previews.js` and `assets/replay-engine.js`: the retained project calculations, state and previews. Demos stop drawing outside their visible project display. The large display keeps controls available on phones.
+- `neural-studio.js`, `neural-worker.js` and `model.js`: real inference, off-main-thread training, drawing/undo, neuron inspection, independent test examples and learning history. Training pauses when the tool or document is hidden.
 
-The GitHub Pages workflow publishes `dist/` when `main` changes. The built scene bundle is committed; hosting requires no server or build environment. Only the static output is uploaded to Pages.
+The old rooms, installation renderers, spatial labels and camera-flight controllers have been retired. Their exact source remains in the recovery branch `backup/before-art-of-engineering-2026-11-03` at `2f137fa34a3c02330325d676dfbd6c2d3e07c544`.
 
-The original private Sites checkout and the pre-workshop snapshot remain separate backups on the owner's computer.
+## Direct access and accessibility
 
-Small personal-installation labels use `spatial-type.js` to position native browser text from 3D anchors. This keeps glyph proportions and clarity independent of the WebGL resolution. Education stays on the right; the experience installation sits on the left with its supporting copy opposite it. The desktop overview reading layer is fixed while its scene is active.
+- `#about`, `#education`, `#experience`, `#work`, `#collection`, `#lab`, `#contact` remain useful entry points.
+- `#project-polyglot` (and the other project IDs) opens its case study directly.
+- `?view=quick` opens the concise overview; Quick View is also available in the header.
+- `?graphics=off` uses the original inline vector fallback without loading Three.js. Save-data connections use that same path.
+- Motion respects the system preference and the footer toggle. The stationary view removes the pinned opening's extra travel; project opening/closing and navigation become immediate.
+- Native dialogs contain keyboard focus and support Escape. Menu and skill/tool tabs support keyboard navigation. Project close returns focus and preserves underlying reading position.
 
-Rendering caps pixel ratio, adapts quality when frames are slow, limits active neighboring islands, disables bloom on narrow screens, and suspends the renderer offscreen or behind dialogs. Direct lab and library entry defers 3D loading. Use `?graphics=off` to exercise the working non-WebGL fallback, or `?view=quick` for the recruiter path. `?audit=1` writes local browser diagnostics into `#performance-audit`; it is not a Core Web Vitals certification or a physical-device benchmark.
+## Recovery and verification notes
 
-See `docs/living-lab.md` for the audit, architecture, verification notes and limits.
+The pre-redesign baseline is also archived outside this checkout at `../backups/before-art-of-engineering-2026-11-03/github-pages.tar.gz`, with its SHA in `commit.txt`. The original private Sites checkout remains separate.
 
-## Neural studio
-
-The playground is now a browser-only teaching experiment: draw labeled examples with pointer or keyboard, inspect hidden-neuron activation fields, change network width, and compare training accuracy with a separate unseen set. The default intertwined spirals, circles, and moons each use 120 training examples and 80 independently generated test examples. Noise affects only the test examples and pauses training for comparison. Blank drawings have no fabricated test score. Undo removes a complete stroke; resetting weights preserves examples.
-
-`neural-studio.js` owns the interface and inference views; `neural-worker.js` trains off the main thread and suspends while the studio is offscreen or the tab is hidden. `model.js` implements the tanh network and backpropagation. Tests check gradients, generalization, snapshot parity, test-data immutability, and worker resets.
-
-The studio now presents Learn, Inspect, and Challenge as separate accessible tabs around a persistent prediction field. Learn contains the pattern choice and drawing tools; network tuning and loss history start collapsed. Inspect reveals the network, and Challenge pauses training before showing independent test examples and noise controls. Switching tabs preserves data, weights, and training progress. Captions and controls use a more spacious layout and larger type.
-
-
-The ivory, staggered project library is isolated in `project-index.css` and `project-index.js`. The immersive scenes use the Living Lab camera system; the model diagram beside the studio heading displays actual current weights and activations.
+See [the audit and verification record](docs/art-of-engineering.md). The eleven regression tests cover neural-network gradients and worker lifecycle, independent test data, opening continuity, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.

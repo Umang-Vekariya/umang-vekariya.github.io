@@ -1,3 +1,5 @@
+> Historical record of the retired Living Lab design. The current architecture is documented in [art-of-engineering.md](art-of-engineering.md).
+
 # Living Lab implementation notes
 
 Baseline: e0feac41e1dd1f133e7884037d0284e9652eb261. An exact archive and commit record are in the workspace backup folder `before-living-lab-2026-11-02`.
