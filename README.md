@@ -2,7 +2,7 @@
 
 [Portfolio](https://umang-vekariya.github.io/)
 
-A continuous 3D exhibition of intelligent systems, practical software, and open experiments. An original folded cobalt sculpture introduces Umang. Readable native text introduces the person, education and experience before the camera enters an open courtyard containing all eight project displays. Each display shows actual project evidence and can switch to its preserved working walkthrough. Camera focus leads into accessible case studies and real browser applications. The Neural Studio remains a real, worker-trained network.
+A continuous 3D exhibition of intelligent systems, practical software, and open experiments. A flowing serif wordmark and an original folded cobalt sculpture introduce Umang. Readable native text introduces the person, education and experience before the camera enters an open courtyard containing all eight project displays. Each display shows actual project evidence and can switch to its preserved working walkthrough. Camera focus leads into accessible case studies and real browser applications. The Neural Studio remains a real, worker-trained network.
 
 The palette uses midnight black, electric cobalt and acid lime across the world, interface and tools.
 ## Run and verify
@@ -49,4 +49,4 @@ The old rooms and corridor have been retired; this is one shared open space. The
 
 The pre-redesign baseline is also archived outside this checkout at `../backups/before-art-of-engineering-2026-11-03/github-pages.tar.gz`, with its SHA in `commit.txt`. The original private Sites checkout remains separate.
 
-See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The nineteen regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.
+See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The 22 regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {titleFrame,elementFlight} from '../dist/engineering-motion.js';
+import {titleFrame,elementFlight,journeyDuration,journeyArc} from '../dist/engineering-motion.js';
 import {createFormGeometry} from '../dist/engineering-form.js';
 import {projects} from '../dist/portfolio-data.js';
 import {projectStories} from '../dist/project-stories.js';
@@ -50,4 +50,18 @@ test('demo rendering stops outside a project and reduced motion draws on demand'
   engine.setProgress(0,false,true);assert.equal(frames.size,0);engine.setProgress(2,true,false);assert.equal(frames.size,1);[id,fn]=frames.entries().next().value;frames.delete(id);fn(200);assert.equal(frames.size,0,'reduced motion continues a render loop');
   engine.pointer(.7,.4,'down');assert.equal(frames.size,1,'a real interaction did not request a new frame');engine.dispose();assert.equal(frames.size,0);assert.equal(listeners.size,0);
  }finally{Object.assign(globalThis,saved);}
+});
+
+
+test('long travel and large turns get more time than neighbouring exhibits',()=>{
+ const near=journeyDuration(8,.5),far=journeyDuration(40,.5);assert.ok(near>=1700);assert.ok(far>near);assert.ok(journeyDuration(20,2)>journeyDuration(20,.2));assert.equal(journeyDuration(1000,10),3200);
+ let previous=0;for(let d=0;d<100;d++){const duration=journeyDuration(d,1);assert.ok(duration>=previous);assert.ok(duration>=1700&&duration<=3200);previous=duration;}
+ assert.ok(titleFrame(.25).typeOpacity>.75,'the identity disappears before it can be read');
+});
+
+
+test('long direct approaches clear the front exhibit instead of crossing its display',()=>{
+ const from=[9,7,-27],to=[-2,5.9,-111],distance=Math.hypot(...to.map((v,i)=>v-from[i]));
+ const t=(-78-from[2])/(to[2]-from[2]),height=from[1]+(to[1]-from[1])*t+journeyArc(distance,t);
+ assert.ok(height>12,'the entry crosses a display housing');assert.equal(journeyArc(distance,0),0);assert.ok(Math.abs(journeyArc(distance,1))<1e-10);assert.equal(journeyArc(12,.5),0);
 });
