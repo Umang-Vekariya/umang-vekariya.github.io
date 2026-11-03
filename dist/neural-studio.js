@@ -30,6 +30,8 @@ export function initNeuralStudio(){
   $('#studio-learn-accuracy').textContent=percentage(train.accuracy);$('#studio-train-accuracy').textContent=percentage(train.accuracy);$('#studio-test-accuracy').textContent=percentage(test.accuracy);$('#studio-epoch').textContent=String(epoch).padStart(4,'0');$('#studio-sample-count').textContent=(showTest?testing.length:data.training.length)+(showTest?' unseen examples':' examples');
   if(record&&epoch!==lastHistoryEpoch){history.push({epoch,train:train.loss,test:test.loss});lastHistoryEpoch=epoch;if(history.length>180)history.shift();}
   drawLoss();
+  const x=probe.active?probe.x:0,y=probe.active?probe.y:0,output=network.forward(x,y);
+  dispatchEvent(new CustomEvent('portfolio-neural-state',{detail:{epoch,x,y,weights:[network.w1.map(row=>Array.from(row)),network.w2.map(row=>Array.from(row)),[Array.from(network.w3)]],activations:[[x,y],Array.from(network.h1),Array.from(network.h2),[output]]}}));
   // Update interpretation sparingly; live metrics themselves are not live regions.
   if(record&&epoch>0&&epoch%25<4&&!selected){
    if(noise>0&&testing.length)announce('The unseen examples have added noise. The training data is unchanged; compare the two scores to see the effect.');
@@ -113,6 +115,7 @@ export function initNeuralStudio(){
   $('#studio-test').disabled=!testing.length;$('#studio-test').hidden=!testing.length;$('#studio-noise').disabled=!testing.length;$('#studio-pane-challenge .studio-test-controls').hidden=!testing.length;
   if(stage!=='learn')setTool('probe');
   announce(stage==='inspect'?(running?'Features update as the model learns. Select a neuron to explore its response.':'Select a neuron to explore its response.'):stage==='challenge'?(testing.length?'Training is paused. Add noise to see where the learned pattern breaks.':'This drawing has no independent test set. Choose a starting pattern in Learn to try the test.'):epoch?'Your examples and learned weights are preserved.': 'Start learning to see the boundary change.');
+  const pane=$('#studio-pane-'+next);if(!document.documentElement.classList.contains('motion-off'))pane.animate([{opacity:.2,transform:'translateY(12px)',clipPath:'inset(0 0 8% 0)'},{opacity:1,transform:'translateY(0)',clipPath:'inset(0 0 0 0)'}],{duration:380,easing:'cubic-bezier(.22,1,.36,1)'});
   updateMetrics();resize();
  }
  function buildNetwork(){features=[];for(const layer of [1,2]){const parent=$('#studio-layer-'+layer);parent.replaceChildren();for(let index=0;index<width;index++){const el=document.createElement('button'),c=document.createElement('canvas');el.type='button';el.className='studio-neuron';el.setAttribute('aria-label',`Inspect layer ${layer}, neuron ${index+1}`);el.setAttribute('aria-pressed','false');c.width=c.height=16;c.setAttribute('aria-hidden','true');el.append(c);el.addEventListener('click',()=>inspect(layer,index));parent.append(el);features.push({layer,index,el,ctx:c.getContext('2d')});}}$('#studio-network').dataset.width=String(width);$('#studio-architecture').textContent=`2 → ${width} → ${width} → 1`;}

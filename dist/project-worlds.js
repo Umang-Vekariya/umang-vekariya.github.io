@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {projectStories} from './project-stories.js';
 import {workshopStations} from './workshop-layout.js';
 // Original scene geometry surrounds the live, truthfully labeled project displays.
 export const worldNames=['Signal field','Frame observatory','Resilience stack','Compiler workbench','Responsive desk','Reconstruction arcade','Decision gates','Campus constellation'];
@@ -115,7 +116,9 @@ export function createProjectWorlds({scene,texture,box,chrome,graphite,red,engin
   const stages=['OBSERVE','BUILD','EXPLORE'];
   stages.forEach((t,i)=>{const px=100+i*360;x.strokeStyle=i===index%3?'#e28560':'#536b6a';x.strokeRect(px,340,280,150);x.fillStyle='#c5d7cf';x.font='25px monospace';x.fillText(t,px+32,422);if(i<2){x.beginPath();x.moveTo(px+280,415);x.lineTo(px+350,415);x.stroke();}});
   x.fillStyle='#7d9896';x.font='22px monospace';x.fillText('APPROACH TO OPEN THE INTERACTIVE STUDY',65,672);
-  const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;return map;
+  const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
+  const evidence=projectStories[station.id]?.evidence?.[0];if(evidence&&typeof Image!=='undefined'){const img=new Image();img.onload=()=>{x.fillStyle='#101b20';x.fillRect(35,250,1130,440);const scale=Math.min(1080/img.width,430/img.height),w=img.width*scale,h=img.height*scale;x.drawImage(img,(1200-w)/2,260+(430-h)/2,w,h);map.needsUpdate=true;};img.src=evidence.poster||evidence.src;}
+  return map;
  });
  worlds.forEach((w,i)=>{
   const s=workshopStations[i];w.root.position.set(s.x,0,s.z);w.root.scale.setScalar(i===5?.76:1);w.root.visible=true;
@@ -125,12 +128,12 @@ export function createProjectWorlds({scene,texture,box,chrome,graphite,red,engin
  function select(index){if(active===index)return;active=index;worlds.forEach((w,i)=>w.screens.forEach(s=>{s.material.map=i===index?s.userData.liveMap:posters[i];s.material.needsUpdate=true;}));}
  return {names:worldNames,select,get screens(){return worlds[active]?.screens||[];},refresh(){texture.needsUpdate=true;extraTextures.forEach(t=>t.needsUpdate=true);},update({phase,time,delta,motion,portrait,index,compact=false,narrow=false}){
   select(index);worlds.forEach((w,i)=>{
-   const s=workshopStations[i],chosen=i===index;
-   w.root.visible=enabled;w.root.position.set(s.x,chosen&&portrait?(i===5?2.0:2.10):0,s.z);
+   const s=workshopStations[i],primary=i===index,chosen=primary||(phase>2.05&&i===index+1);
+   w.root.visible=enabled&&(index<0||Math.abs(i-index)<=1);w.root.position.set(s.x,chosen&&portrait?(i===5?2.0:2.10):0,s.z);
    w.root.scale.setScalar(chosen&&portrait?w.phoneScale:((compact||narrow)&&chosen?(i===5?.63:.86):(i===5?.76:1)));
    const facing=s.x<0?Math.PI/2:-Math.PI/2;
    w.root.rotation.set(0,facing+(chosen?-.045+(motion?Math.sin(phase*.8)*.02:0):0),0);
-   if(chosen){w.pose({p:phase,time,motion,delta});w.tick({p:phase,time,motion,delta});}
+   if(chosen){w.pose({p:primary?phase:0,time,motion,delta});w.tick({p:primary?phase:0,time,motion,delta});}
   });
  },setVisible(value){enabled=value;worlds.forEach(w=>w.root.visible=value);}};
 }

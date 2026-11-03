@@ -10,7 +10,8 @@ export function createProfileFoyer({scene,box,font,chrome,graphite,red,spatialTy
  const warm=new THREE.MeshStandardMaterial({color:0xb77658,metalness:.72,roughness:.3});
  const stone=new THREE.MeshStandardMaterial({color:0x233135,metalness:.4,roughness:.52});
  const type=new THREE.MeshPhysicalMaterial({color:0xe4dbcb,metalness:.35,roughness:.28});
- const roots=[],anchors=[],orbital=[],beacons=[];
+ const roots=[],anchors=[],orbital=[],beacons=[],toolkitNodes=[];let toolkit=0;
+ globalThis.addEventListener?.('portfolio-toolkit',e=>toolkit=e.detail.index);
  const line=(points,mat=mint)=>new THREE.Line(new THREE.BufferGeometry().setFromPoints(points.map(p=>new THREE.Vector3(...p))),new THREE.LineBasicMaterial({color:mat.color,transparent:true,opacity:.4}));
  function word(text,size=.6,material=type){const g=new TextGeometry(text,{font,size,depth:.09,curveSegments:12,bevelEnabled:true,bevelThickness:.008,bevelSize:.008,bevelSegments:3});g.computeBoundingBox();g.translate(-g.boundingBox.max.x/2,0,0);return new THREE.Mesh(g,material);}
  function ring(radius,material=mint,tube=.012){return new THREE.Mesh(new THREE.TorusGeometry(radius,tube,8,72),material);}
@@ -41,7 +42,7 @@ export function createProfileFoyer({scene,box,font,chrome,graphite,red,spatialTy
   label(root,'Current CGPA · VIT Vellore',0,1.87,.12,5.3);
   label(root,'B.Tech · Computer Science (AI & ML)',0,-.45,.2,5.4);
   const modules=[['Python / C++',-1.92],['TensorFlow / OpenCV',0],['React / FastAPI',1.92]];
-  for(const [name,x] of modules){const module=box(1.7,.64,.8,stone,x,-1.62,.16);root.add(module);label(root,name,x,-1.55,.58,1.57,{kind:'module'});const lamp=box(1.32,.018,.025,mint,x,-1.82,.58);root.add(lamp);beacons.push(lamp);root.add(line([[x,-1.28,.16],[x,-.9,.16],[0,-.9,.16],[0,-.55,.16]]));}
+  for(const [name,x] of modules){const module=box(1.7,.64,.8,stone,x,-1.62,.16);module.material=module.material.clone();root.add(module);toolkitNodes.push(module);label(root,name,x,-1.55,.58,1.57,{kind:'module'});const lamp=box(1.32,.018,.025,mint,x,-1.82,.58);root.add(lamp);beacons.push(lamp);root.add(line([[x,-1.28,.16],[x,-.9,.16],[0,-.9,.16],[0,-.55,.16]]));}
  }
  // An actual timeline, rather than invented metrics or achievement badges.
  {
@@ -64,6 +65,7 @@ export function createProfileFoyer({scene,box,font,chrome,graphite,red,spatialTy
    const alpha=profileWeight(i,phase)*entry*(1-exit),fit=profilePlacement({portrait,aspect,index:i});root.userData.labelAlpha=alpha;root.visible=alpha>.001;root.position.set(fit.x,fit.y,profileStops[i].z);root.scale.setScalar(fit.scale);
    fades[i].forEach(({clone,base})=>{clone.opacity=base*alpha;clone.depthWrite=alpha>.98;});
   });
+  toolkitNodes.forEach((node,i)=>{node.material.emissive?.setHex(i===toolkit?0x8d5736:0x000000);node.material.emissiveIntensity=i===toolkit?.3:0;});
   orbital.forEach((o,i)=>{if(i===0)o.rotation.y=motion?Math.sin(time*.18)*.04:0;else o.rotation.z=motion?time*.035*(i%2?1:-1):0;});
   beacons.forEach((o,i)=>o.scale.setScalar(motion?1+Math.sin(time*.8+i)*.035:1));
  }};
