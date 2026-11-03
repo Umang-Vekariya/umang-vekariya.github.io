@@ -27,3 +27,7 @@ Phone composition gives the project display a separate upper region and keeps se
 - No application console errors observed in the main local review tab. The browser wrapper's iframe harness emitted an unrelated MutationObserver error; no such error was observed in the normal site tab.
 
 No Lighthouse score, frame-rate benchmark, broad browser certification or physical-device test is claimed. Screenshot artifacts live in the external backup QA folder rather than the public site.
+
+## Follow-up: persistence and material quality
+
+The initial spatial release used chapter and neighbouring-index visibility switches. These were visibly popping objects and were removed in the follow-up quality pass. See [the quality-pass record](spatial-quality.md).

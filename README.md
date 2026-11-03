@@ -26,7 +26,8 @@ The build bundles `spatial-world.js` and its Three.js dependencies. Commit the g
 
 - `engineering.css` provides native layouts; `spatial.css` supplies the spatial compositions and rich palette. `neural-studio.css` retains the functional tool layout.
 - `engineering.js` owns content, navigation, accessible dialogs, native scroll, project selection and the bridge from physical displays to case studies and apps.
-- `spatial-world.js` owns the sole WebGL renderer, the sculpture, shared courtyard, actual evidence textures, live demo texture, pointer raycasting and camera flights. Rendering stops after settling and while dialogs or the Neural Studio cover the world.
+- `spatial-world.js` owns the sole WebGL renderer, the sculpture, shared courtyard, actual evidence textures, persistent per-exhibit demo textures, pointer raycasting and camera flights. Rendering stops after settling and while dialogs or the Neural Studio cover the world.
+- `spatial-craft.js` creates beveled housings, turned pedestals, machined apertures, reflection lighting and independent display surfaces. Exhibits stay in the scene throughout the journey; native frustum culling handles what lies outside the view.
 - `spatial-layout.js` defines deterministic camera shots and curved, reversible travel between the eight exhibits. Position, orientation and lens movement are coordinated in the same renderer.
 - `engineering-form.js` creates the original closed folded band and its aperture morph. It has no separate renderer.
 - `portfolio-data.js`, `project-stories.js`, `project-proof.js` and `demo-content.js` preserve genuine content and scope labels.
@@ -48,4 +49,4 @@ The old rooms and corridor have been retired; this is one shared open space. The
 
 The pre-redesign baseline is also archived outside this checkout at `../backups/before-art-of-engineering-2026-11-03/github-pages.tar.gz`, with its SHA in `commit.txt`. The original private Sites checkout remains separate.
 
-See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The fifteen regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.
+See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The nineteen regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.

@@ -2,7 +2,7 @@ import {profile,projects,experiences,skills,certificates} from './portfolio-data
 import {projectStories} from './project-stories.js';
 import {projectProof} from './project-proof.js';
 import {demoContent} from './demo-content.js';
-import {createDemoEngine} from './project-demos.js?v=6';
+import {createDemoEngine} from './project-demos.js?v=7';
 import {createProjectPreviews} from './project-previews.js?v=5';
 import {titleFrame,elementFlight,clamp} from './engineering-motion.js?v=3';
 
@@ -11,6 +11,7 @@ const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const root=document.documentElement,reduced=matchMedia('(prefers-reduced-motion: reduce)'),surfaces=['#12338f','#0f2261','#163fb4','#10235f','#11327a','#1434a0','#0d2166','#193e9d'];
 let motion=!reduced.matches,preview,activeId=null,phase=0,origin=null,flight=null,flightTicket=0,returnFocus=null,priorHash='',studioStarted=false,studyVisible=false,closeTicket=0,navigationFlight=null,navigationTicket=0;
 let spatialController=null,worldStarted=false,worldBootReady=false,worldState={chapter:'home',progress:0,index:0,phase:0},galleryIndex=0,galleryStep=0,galleryVisible=false,galleryLive=false,manualStep=false,directMove=false;
+const galleryLiveProjects=new Set();
 root.dataset.sceneMode='space';root.classList.add('js-reveal');
 const reveal=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){e.target.classList.add('is-visible');reveal.unobserve(e.target);}},{rootMargin:'0px 0px -35px 0px',threshold:.05});
 $$('.reveal').forEach(el=>reveal.observe(el));
@@ -79,7 +80,7 @@ function chapterState(){
  return {chapter:'contact',progress:phase(contact,contact.offsetTop+contact.offsetHeight-innerHeight),index:galleryIndex,phase:0};
 }
 function updateSpace(){worldState=chapterState();galleryVisible=worldState.chapter==='gallery';root.dataset.spaceChapter=worldState.chapter;
- if(galleryVisible){if(worldState.index!==galleryIndex){galleryIndex=worldState.index;manualStep=false;galleryLive=false;}if(!manualStep)galleryStep=Math.min(2,Math.floor(worldState.phase/.24));renderGallery(galleryIndex);}
+ if(galleryVisible){if(worldState.index!==galleryIndex){if(galleryLive||manualStep||galleryStep>0)galleryLiveProjects.add(galleryIndex);galleryIndex=worldState.index;manualStep=false;galleryLive=galleryLiveProjects.has(galleryIndex);}if(!manualStep)galleryStep=Math.min(2,Math.floor(worldState.phase/.24));renderGallery(galleryIndex);}
  syncDemo();worldState.live=galleryLive||manualStep||galleryStep>0;spatialController?.update(worldState,{direct:directMove});directMove=false;if(worldBootReady)ensureWorld();
 }
 
@@ -148,7 +149,7 @@ function ensureWorld(){
  if(worldStarted||document.querySelector('dialog[open]')||['lab','index'].includes(worldState.chapter))return;
  worldStarted=true;formObserver.disconnect();
  if(navigator.connection?.saveData||new URL(location.href).searchParams.get('graphics')==='off'){root.classList.add('spatial-fallback');return;}
- import('./spatial-world.bundle.js?v=8').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine);if(!spatialController)root.classList.add('spatial-fallback');else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');});
+ import('./spatial-world.bundle.js?v=16').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine);if(!spatialController)root.classList.add('spatial-fallback');else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');});
 }
 const formObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))ensureWorld();},{rootMargin:'0px'});formObserver.observe($('#home'));worldBootReady=true;ensureWorld();
 $$('dialog').forEach(d=>{d.addEventListener('toggle',()=>{if(d.open)spatialController?.release();syncDemo();});d.addEventListener('close',()=>{preview?.resume();requestAnimationFrame(()=>{ensureWorld();spatialController?.update(worldState);syncDemo();});});});

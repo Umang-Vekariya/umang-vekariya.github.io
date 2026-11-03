@@ -14,9 +14,9 @@ test('the opening is reversible, monotonic and has a stable reduced-motion frame
 });
 
 test('the sculpture is finite, indexed, and keeps its passage open at all morph states',()=>{
- const g=createFormGeometry();assert.equal(g.attributes.position.count,g.morphAttributes.position[0].count);assert.equal(g.attributes.normal.count,g.morphAttributes.normal[0].count);const v=new THREE.Vector3(),a=g.attributes.position,b=g.morphAttributes.position[0];let minimum=Infinity;
+ const segments=320,sides=64,g=createFormGeometry(segments,sides);assert.equal(g.attributes.position.count,g.morphAttributes.position[0].count);assert.equal(g.attributes.normal.count,g.morphAttributes.normal[0].count);const v=new THREE.Vector3(),a=g.attributes.position,b=g.morphAttributes.position[0];let minimum=Infinity;
  for(let i=0;i<a.count;i++){v.fromBufferAttribute(a,i);assert.ok(v.toArray().every(Number.isFinite));assert.ok(Number.isFinite(g.attributes.normal.getX(i)));for(const alpha of [0,.25,.5,.75,1]){const x=a.getX(i)*(1-alpha)+b.getX(i)*alpha,y=a.getY(i)*(1-alpha)+b.getY(i)*alpha;minimum=Math.min(minimum,Math.hypot(x,y));}}
- for(let j=0;j<=20;j++)for(const state of [a,b]){const first=new THREE.Vector3().fromBufferAttribute(state,j),last=new THREE.Vector3().fromBufferAttribute(state,240*21+j);assert.ok(first.distanceTo(last)<1e-5,'the morph opens a seam');}
+ for(let j=0;j<=sides;j++)for(const state of [a,b]){const first=new THREE.Vector3().fromBufferAttribute(state,j),last=new THREE.Vector3().fromBufferAttribute(state,segments*(sides+1)+j);assert.ok(first.distanceTo(last)<1e-5,'the morph opens a seam');}
  assert.ok(minimum>1,'geometry intrudes on the camera passage');for(const i of g.index.array)assert.ok(i>=0&&i<a.count);g.dispose();
 });
 

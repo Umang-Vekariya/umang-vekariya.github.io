@@ -1,11 +1,11 @@
 import {interpolateRSSI,aggregateFrames,Outbox,BookingQueue,fitMotion,explainAction} from './demo-models.js';
 import {ReplaySession,drawReconstruction} from './assets/replay-engine.js';
 import {demoContent} from './demo-content.js';
-const C={bg:'#04091c',panel:'#0b1c4b',ink:'#edf3ff',muted:'#99b3e8',line:'#2446a2',red:'#3266ff',green:'#d4ff35'};
+const C={bg:'#04091c',panel:'#0b1c4b',ink:'#edf3ff',muted:'#99b3e8',line:'#2446a2',red:'#7198ff',green:'#d4ff35'};
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 export function createDemoEngine(){
- const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=760;canvas.setAttribute('aria-label','Interactive project demonstration');document.querySelector('#demo-flat').append(canvas);
- const ctx=canvas.getContext('2d'),outbox=new Outbox(),bookings=new BookingQueue(2);
+ const canvas=document.createElement('canvas');const renderScale=typeof innerWidth==='number'&&innerWidth<=760?1.25:1.5;canvas.width=1200*renderScale;canvas.height=760*renderScale;canvas.setAttribute('aria-label','Interactive project demonstration');document.querySelector('#demo-flat').append(canvas);
+ const ctx=canvas.getContext('2d');ctx.setTransform(renderScale,0,0,renderScale,0,0);const outbox=new Outbox(),bookings=new BookingQueue(2);
  const states={wnams:{samples:[{x:.18,y:.2,rssi:-45},{x:.78,y:.26,rssi:-58},{x:.62,y:.8,rssi:-72}],cursor:{x:.5,y:.5},version:0},deepfake:{sample:0},'vit-vault':{outbox,version:1},polyglot:{examples:null,index:0,loading:false},realityforge:{x:.52,y:.48,ball:{x:.15,y:.3,vx:.14,vy:.11}},'playable-replay':{session:null,scene:null,replay:null,loading:false,accumulator:0,control:false,paddle:.5,ball:{x:.27,y:.64,vx:.16,vy:-.24},hits:0,bricks:Array(28).fill(true)},'intent-lab':{scenario:0,runs:null,loading:false},clubsphere:{bookings,next:0}};
  const gameCanvas=document.createElement('canvas');gameCanvas.width=768;gameCanvas.height=512;
  const displayDialog=document.querySelector('#display-dialog');
