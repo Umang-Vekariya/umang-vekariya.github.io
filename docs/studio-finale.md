@@ -1,3 +1,5 @@
+> Historical record. The closing presentation is now the [first-person dual-monitor desk](first-person-desk.md); the native-screen handoff remains.
+
 # Neural Studio → closing space — 4 November 2026
 
 The live Neural Studio becomes a physical display when the visitor scrolls beyond the tool. The camera then holds a separate cobalt studio while the existing “Let’s build what’s next” contact content enters. The hero, personal overview, project gallery and eight project engines are preserved.

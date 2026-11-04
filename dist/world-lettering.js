@@ -78,6 +78,7 @@ export function createWorldLettering(scene,schedule){
  function measure(){
   for(const p of panels){
    if(!p.dirty)continue;p.dirty=false;
+   if(root.dataset.deskScreen==='true'&&p.element.closest('#contact'))continue;
    p.element.style.transform='';const r=p.slot.getBoundingClientRect();
    if(!r.width)continue;
    const headings=p.headings?(p.element.matches(p.headings)?[p.element]:[...p.element.querySelectorAll(p.headings)]):[];
@@ -125,6 +126,7 @@ export function createWorldLettering(scene,schedule){
   }
   nameMotion.rotation.set(aim.y*.045,-.17+aim.x*.12,0);
   for(const p of panels){
+   if(root.dataset.deskScreen==='true'&&p.element.closest('#contact')){p.group.visible=false;p.element.style.transform='';continue;}p.group.visible=true;
    const r=p.slot.getBoundingClientRect();if(!r.width||!r.height||r.bottom<-innerHeight||r.top>innerHeight*2){p.group.position.set(0,0,0);p.group.matrix.makeTranslation(0,-10000,0);continue;}
    const interactive=Boolean(p.element.querySelector('button,input,select')||p.element.matches('a,.chapter-rule,.footer,.hero-top'));
    const frame=readingSurface({...r.toJSON(),viewportWidth:innerWidth,viewportHeight:innerHeight},camera,{interactive});

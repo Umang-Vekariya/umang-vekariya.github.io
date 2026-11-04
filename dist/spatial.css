@@ -52,16 +52,28 @@ body{background:#030511;color:#edf2ff}.spatial-world{position:fixed;inset:0;z-in
 .studio-screen-window.is-pinned{position:fixed;left:0;top:0;z-index:8;overflow:hidden;transform-origin:0 0;will-change:transform;backface-visibility:hidden;background:#060d2b}#neural-console.studio-in-space{position:relative;z-index:auto;margin:0;max-width:none;transform-origin:0 0}
 .studio-in-space[inert]{pointer-events:none}
 .studio-exit-cue{position:absolute;left:32px;top:var(--exit-cue-top);font:9px var(--mono);letter-spacing:.08em;color:#9db5ee;pointer-events:none;transform:translateY(42px)}
-html[data-finale=true] #contact{background:transparent;min-height:105svh;padding-left:53%;padding-top:130px;padding-bottom:100px}
-html[data-finale=true] #contact .chapter-rule{gap:20px;flex-wrap:wrap;line-height:1.8}
-html[data-finale=true] .contact-kicker{font-size:24px;margin-top:60px;margin-bottom:35px}
-html[data-finale=true] .contact-title{font-size:clamp(58px,5.9vw,110px)}
-html[data-finale=true] .contact-title>span:last-child{display:block}
-html[data-finale=true] .contact-title b{display:inline-block;margin-left:24px}
-html[data-finale=true] .contact-bottom{display:block;margin-top:45px}
-html[data-finale=true] .contact-links{display:flex;gap:25px;margin-top:28px;flex-wrap:wrap}
-html[data-finale=true] .contact-bottom>div>a{font-size:clamp(12px,1.05vw,18px)}
-@media(max-width:760px){html[data-finale=true] #contact{padding:52svh 24px 70px;min-height:125svh;background:linear-gradient(transparent,#030511d9 48%)}html[data-finale=true] .contact-title{font-size:clamp(45px,12vw,80px)}html[data-finale=true] .contact-kicker{font-size:20px;margin-top:35px;margin-bottom:25px}html[data-finale=true] #contact .chapter-rule{font-size:8px;gap:8px}html[data-finale=true] .contact-bottom{margin-top:35px}.studio-exit-cue{left:18px;font-size:8px}}
+html[data-finale=true] #contact{background:transparent;min-height:110svh;padding:0}
+.desk-contact-window{position:fixed;left:0;top:0;width:960px;height:600px;z-index:9;transform-origin:0 0;overflow:hidden;background:#040b1d;backface-visibility:hidden;will-change:transform}
+.desk-contact-window[hidden]{display:none}
+.desk-contact-content{padding:48px 54px;height:100%;box-sizing:border-box;border:1px solid #3153a9;color:#edf2ff;background:radial-gradient(ellipse at 100% 0,#15318155,transparent 60%),#040b1d}
+.desk-contact-window .world-surface-slot{margin:0!important}
+#contact .desk-contact-content .chapter-rule{font:16px var(--mono);margin:0 0 26px;padding:15px 0 0;gap:20px;justify-content:space-between;flex-wrap:nowrap;line-height:1.5;opacity:.75}
+#contact .desk-contact-content .chapter-rule>span:last-child{max-width:48%;text-align:right}
+#contact .desk-contact-content .contact-kicker{font-size:26px;line-height:1.4;margin:0 0 22px;color:#97a9d1}
+#contact .desk-contact-content .contact-title{font:500 90px/.98 var(--display);letter-spacing:-.065em;display:block;margin:0}
+#contact .desk-contact-content .contact-title>span{display:block}
+#contact .desk-contact-content .contact-title em{font-family:var(--serif);font-size:1.12em;font-weight:400;letter-spacing:-.015em;word-spacing:.06em;color:#d4ff35}
+#contact .desk-contact-content .contact-title b{font-size:.5em;display:inline-block;margin-left:24px}
+#contact .desk-contact-content .contact-bottom{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-top:32px;padding-top:22px;border-top:1px solid #5375cb55}
+#contact .desk-contact-content .contact-bottom p{font-size:18px;margin-bottom:8px}
+#contact .desk-contact-content .contact-bottom>div>a{font-size:26px}
+#contact .desk-contact-content .contact-links{display:flex;gap:20px;margin:0;flex-wrap:wrap}
+#contact .desk-contact-content .contact-links a{font-size:22px!important}
+#contact .desk-contact-content #copy-email{font-size:22px;padding:0 8px}
+#contact .desk-contact-content #copy-status{font-size:14px}
+#contact .desk-contact-content .scene-type-surface{transform:none!important}
+html[data-desk-screen=true] #contact>.desk-contact-window .contact-title{opacity:1}
+@media(prefers-reduced-motion:reduce){.desk-contact-window{will-change:auto}}
 .motion-off .studio-exit-cue,.spatial-fallback .studio-exit-cue{display:none}
 @media(prefers-reduced-motion:reduce){.studio-exit-cue{display:none}.studio-screen-window.is-pinned{will-change:auto}}
 .studio-reveal-track{max-width:1240px;margin:0 auto}
@@ -127,3 +139,18 @@ html[data-finale=true] .contact-bottom>div>a{font-size:clamp(12px,1.05vw,18px)}
 .experience-item h3,.gallery-copy h3{letter-spacing:-.02em}
 .gallery-copy h2{letter-spacing:-.04em}
 @media(max-width:759px){.gallery-copy h2{letter-spacing:-.025em}}
+/* A real responsive contact document, fitted into the right physical monitor. */
+.desk-contact-content{display:flex;flex-direction:column;justify-content:center;gap:22px}
+.desk-contact-content>.world-surface-slot{flex:0 0 auto}
+@media(max-width:759px){
+ .desk-contact-content{padding:32px 40px;gap:16px}
+ .desk-contact-content>.world-surface-slot:has(>.contact-kicker){display:none!important}
+ #contact .desk-contact-content .chapter-rule{font-size:20px;line-height:1.3;padding-top:10px}
+ #contact .desk-contact-content .contact-title{font-size:100px;line-height:.98}
+ #contact .desk-contact-content .contact-bottom{display:block;padding-top:12px}
+ #contact .desk-contact-content .contact-bottom p{font-size:20px;line-height:1.2;margin-bottom:0}
+ #contact .desk-contact-content .contact-bottom>div>a{font-size:32px;display:inline-flex;align-items:center;min-height:80px}
+ #contact .desk-contact-content #copy-email{font-size:34px;min-width:90px;min-height:80px}
+ #contact .desk-contact-content .contact-links{gap:32px;margin:0}
+ #contact .desk-contact-content .contact-links a{font-size:30px!important;min-height:80px;display:inline-flex;align-items:center}
+}
