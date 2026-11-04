@@ -1,0 +1,13 @@
+# Parting atlas and original identity — 4 November 2026
+
+The atlas now opens a real path. Its eight existing folios divide into two groups of four, and their two supporting carriages move with them. Nothing is spawned, removed or faded out to disguise the handoff. The cards finish opening before the camera reaches their plane. The camera centers on the gap and travels forward through it; reversing scroll reunites the same folios and carriages.
+
+`atlasPose` and `atlasBankX` derive geometry from the same reversible chapter parameter as `atlasPassageShot`. Opening occupies the first 48% of the passage; the camera dolly begins at 28% and crosses later. Existing frame damping remains shared with the world. The biography and education shots continue forward behind the atlas, replacing the former sideways turn and return across the installation. A 115svh native scroll section provides the passage; motion-off, reduced-motion and graphics-free layouts omit it.
+
+The opening scroll cue pauses at the assembled atlas. The atlas's native “Open a way forward” link then plays the passage into the biography. Wheel, touch, pointer input and navigation keys interrupt these explicit click journeys. Keyboard focus passes to the atlas link when it becomes visible, then to the biography after the next journey. Direct navigation, all eight folio selections, gallery choices, case studies and Quick View remain available.
+
+The hero name is now an original SVG wordmark: five custom letter paths with a shared diagonal cut, slanted composition and pale metallic finish. The subtitle remains native letterforms. Perspective assembly, cobalt trails, traced outlines and pointer response preserve one accessible heading name. The static vectors remain visible without JavaScript; reduced motion cancels the animation controller.
+
+Validation includes camera continuity, clearance against each oriented folio through 1,001 passage positions, and rapid forward/reverse target changes using the actual damping constants. A clearance guard also keeps the cards open during a rapid jump from behind the atlas to the first hero; that regression samples 144 Hz, 60 Hz and long frames. These extend the suite to 30 tests. Browser review covers desktop, short desktop and two phone compositions, intermediate and crossing views, keyboard entry, reverse travel, opening-cue pacing, and the phone motion-off bypass. No frame-rate score or physical-device certification is claimed.
+
+Recovery branch `backup/before-parting-atlas-2026-11-04` retains the prior published design at `05139e193411a2fc80cf31854820a7efa2f1157c`. Review fixtures and screenshots are saved outside deployment under `backups/parting-atlas-2026-11-04/qa/`.

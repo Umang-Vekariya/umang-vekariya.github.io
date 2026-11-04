@@ -1,4 +1,4 @@
-import {initIdentity} from './identity-motion.js?v=1';
+import {initIdentity} from './identity-motion.js?v=2';
 import {initStudioFinale} from './studio-finale.js?v=2';
 import {profile,projects,experiences,skills,certificates} from './portfolio-data.js?v=2';
 import {projectStories} from './project-stories.js';
@@ -74,6 +74,8 @@ renderGallery(0);
 function chapterState(){
  const y=scrollY,home=$('#home'),about=$('#about'),education=$('#education'),arrival=$('#work'),lab=$('#lab'),contact=$('#contact'),index=$('#collection');
  const phase=(node,end)=>clamp((y-node.offsetTop)/Math.max(1,end-node.offsetTop));
+ const passageStart=home.offsetTop+home.offsetHeight-innerHeight,passageEnd=about.offsetTop-innerHeight*.2;
+ if(motion&&!root.classList.contains('spatial-fallback')&&y>=passageStart&&y<passageEnd)return {chapter:'passage',progress:clamp((y-passageStart)/Math.max(1,passageEnd-passageStart)),index:0,phase:0};
  if(y<about.offsetTop-innerHeight*.2)return {chapter:'home',progress:phase(home,home.offsetTop+home.offsetHeight-innerHeight),index:0,phase:0};
  if(y<education.offsetTop-innerHeight*.18)return {chapter:'about',progress:phase(about,education.offsetTop-innerHeight*.18),index:0,phase:0};
  if(y<arrival.offsetTop-innerHeight*.18)return {chapter:'education',progress:phase(education,arrival.offsetTop-innerHeight*.18),index:0,phase:0};
@@ -141,7 +143,7 @@ function filterCommands(){let count=0;$$('#command-results a').forEach(a=>{a.hid
 function openCommands(){if(!menu.hidden)setMenu(false);commands.showModal();search.value='';filterCommands();search.focus();}
 $('.quick-trigger').addEventListener('click',openCommands);search.addEventListener('input',filterCommands);$$('#command-results a').forEach(a=>a.addEventListener('click',()=>commands.close()));
 document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(commands.open)commands.close();else if(!$$('dialog[open]').length)openCommands();}if(!commands.open)return;const links=$$('#command-results a').filter(a=>!a.hidden),i=links.indexOf(document.activeElement);if(e.key==='ArrowDown'){e.preventDefault();links[(i+1)%links.length]?.focus();}else if(e.key==='ArrowUp'){e.preventDefault();if(i<=0)search.focus();else links[i-1]?.focus();}else if(e.key==='Enter'&&document.activeElement===search){e.preventDefault();links[0]?.click();}});
-function setMotion(value){motion=value;if(!value)cancelSectionScroll();root.classList.toggle('motion-off',!value);$('#motion-toggle').setAttribute('aria-pressed',String(value));$('#motion-toggle span').textContent=value?'on':'off';dispatchEvent(new CustomEvent('portfolio-motion',{detail:{enabled:value}}));if(activeId)syncDemo();updateFrame();}
+function setMotion(value){motion=value;$('.scroll-cue').setAttribute('href',value?'#atlas':'#about');if(!value)cancelSectionScroll();root.classList.toggle('motion-off',!value);$('#motion-toggle').setAttribute('aria-pressed',String(value));$('#motion-toggle span').textContent=value?'on':'off';dispatchEvent(new CustomEvent('portfolio-motion',{detail:{enabled:value}}));if(activeId)syncDemo();updateFrame();}
 $('#motion-toggle').addEventListener('click',()=>setMotion(!motion));reduced.addEventListener('change',e=>setMotion(!e.matches));
 let scrollFrame=0;
 function updateFrame(){scrollFrame=0;const section=$('.hero-sequence'),progress=clamp(-section.getBoundingClientRect().top/Math.max(1,section.offsetHeight-innerHeight)),pose=titleFrame(progress,{portrait:innerWidth<760,motion});$('.hero-type').style.opacity=pose.typeOpacity;$('.hero-type').inert=pose.typeOpacity<.1;$('.hero-type').style.transform=`translateY(${pose.typeY}px)`;$('.hero-top').style.opacity=pose.typeOpacity;$('.hero-bottom').style.opacity=pose.typeOpacity;$('.hero-bottom').inert=pose.typeOpacity<.1;$('.passage-caption').style.opacity=pose.caption;$('.hero-sticky').style.setProperty('--passage-wash',pose.wash);const art=$('#hero-art'),shift=(innerWidth/2-(art.offsetLeft+art.offsetWidth/2))*smoothCenter(progress);art.style.transform=`translateX(${shift}px) scale(${pose.artScale})`;$('.header').classList.toggle('scrolled',scrollY>90);updateSpace();}
@@ -154,7 +156,7 @@ function ensureWorld(){
  if(worldStarted||document.querySelector('dialog[open]')||['lab','index'].includes(worldState.chapter))return;
  worldStarted=true;formObserver.disconnect();
  if(navigator.connection?.saveData||new URL(location.href).searchParams.get('graphics')==='off'){root.classList.add('spatial-fallback');queueFrame();return;}
- import('./spatial-world.bundle.js?v=23').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
+ import('./spatial-world.bundle.js?v=24').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
 }
 const formObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))ensureWorld();},{rootMargin:'0px'});formObserver.observe($('#home'));worldBootReady=true;ensureWorld();
 $$('dialog').forEach(d=>{d.addEventListener('toggle',()=>{if(d.open)spatialController?.release();syncDemo();});d.addEventListener('close',()=>{preview?.resume();requestAnimationFrame(()=>{ensureWorld();spatialController?.update(worldState);syncDemo();});});});
@@ -163,13 +165,18 @@ function route(){if(location.hash==='#collection')$('#collection').hidden=false;
 addEventListener('popstate',route);addEventListener('hashchange',route);requestAnimationFrame(()=>{route();if(new URL(location.href).searchParams.get('view')==='quick')quick.showModal();});
 // A deliberate click-through opening; wheel, touch and keys always take over.
 function cancelSectionScroll(){cancelAnimationFrame(sectionScrollFrame);sectionScrollFrame=0;}
-$('.scroll-cue').addEventListener('click',e=>{
- if(!motion)return;e.preventDefault();cancelSectionScroll();const from=scrollY,to=$('#about').offsetTop,start=performance.now(),duration=Math.min(2400,1400+Math.abs(to-from)/2);
- function tick(now){const p=clamp((now-start)/duration),t=p*p*(3-2*p);scrollTo({top:from+(to-from)*t,behavior:'instant'});if(p<1)sectionScrollFrame=requestAnimationFrame(tick);else{sectionScrollFrame=0;history.pushState(null,'','#about');}}
+function scrollJourney(to,hash,duration,focus){
+ cancelSectionScroll();const from=scrollY,start=performance.now();
+ function tick(now){const p=clamp((now-start)/duration),t=p*p*(3-2*p);scrollTo({top:from+(to-from)*t,behavior:'instant'});if(p<1)sectionScrollFrame=requestAnimationFrame(tick);else{sectionScrollFrame=0;history.pushState(null,'','#'+hash);let attempts=0;const handoff=()=>{sectionScrollFrame=0;if(!focus?.isConnected)return;if(!focus.hidden&&focus.getClientRects().length){focus.focus({preventScroll:true});return;}if(attempts++<30)sectionScrollFrame=requestAnimationFrame(handoff);};sectionScrollFrame=requestAnimationFrame(handoff);}}
  sectionScrollFrame=requestAnimationFrame(tick);
+}
+$('.scroll-cue').addEventListener('click',e=>{
+ if(!motion)return;e.preventDefault();const to=$('#home').offsetTop+$('#home').offsetHeight-innerHeight;
+ scrollJourney(to,'atlas',Math.min(2400,1400+Math.abs(to-scrollY)/2),$('#atlas-index-link'));
 });
+$('#atlas-index-link').addEventListener('click',e=>{if(!motion)return;e.preventDefault();scrollJourney($('#about').offsetTop-100,'about',2800,$('#about'));});
 for(const event of ['wheel','touchstart','pointerdown'])addEventListener(event,cancelSectionScroll,{passive:true});
-addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' ','Escape'].includes(e.key))cancelSectionScroll();});
+addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' ','Escape','Tab'].includes(e.key))cancelSectionScroll();});
 // Ordinary section links retain native scrolling. Very long jumps are brief
 // masked cuts, avoiding a fast-forward through unrelated chapters.
 document.addEventListener('click',async e=>{

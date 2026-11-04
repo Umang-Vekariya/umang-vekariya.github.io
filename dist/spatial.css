@@ -19,31 +19,29 @@ body{background:#030511;color:#edf2ff}.spatial-world{position:fixed;inset:0;z-in
 
 #lab select{background:#0a1d55;color:#edf2ff;border-color:#5274c9}
 
-/* Kinetic identity: assembled letterforms, cobalt depth and a moving light. */
+/* An original cut-metal wordmark; real paths, rather than a display-font swap. */
 .hero-sequence{height:200svh}
-.hero-small{top:26%;font:10px var(--mono);letter-spacing:.16em;color:#a4b8e9}
-.identity-composition{position:absolute;top:29%;left:var(--gutter);width:46vw}.hero-type .hero-identity{position:relative;top:auto;left:auto;width:100%;font:800 clamp(100px,min(12.2vw,22vh),330px)/.94 var(--display);letter-spacing:-.075em;isolation:isolate;pointer-events:auto;perspective:1100px}
-.identity-row{display:flex;position:relative;width:max-content;white-space:nowrap;padding:.05em .08em .08em 0;margin:0;overflow:clip;overflow-clip-margin:.04em;perspective:900px}
-.identity-row-1{font-size:.78em;letter-spacing:-.065em;margin-top:-.17em;font-weight:650;color:#b7caff}
-.identity-glyph{display:inline-block;position:relative;transform-origin:center 80%;transform-style:preserve-3d;transition:color .3s;line-height:.95}
+.hero-small{top:25%;font:10px var(--mono);letter-spacing:.16em;color:#a4b8e9}
+.identity-composition{position:absolute;top:32%;left:var(--gutter);width:46vw}.hero-type .hero-identity{position:relative;top:auto;left:auto;width:100%;font:600 clamp(90px,min(10.2vw,21vh),290px)/1 var(--display);letter-spacing:0;isolation:isolate;pointer-events:auto;perspective:1100px}
+.identity-row{display:flex;position:relative;width:max-content;white-space:nowrap;perspective:900px}
+.identity-row-0{transform:skewX(-8deg);transform-origin:left center;padding:.06em .1em .08em .03em;overflow:clip;overflow-clip-margin:.08em}
+.identity-row-0 .identity-glyph{height:1em;flex-shrink:0}.identity-glyph svg{display:block;width:100%;height:100%;overflow:visible}
+.letter-outline{opacity:0;stroke-dasharray:1;stroke-dashoffset:0}
+.identity-row-1{width:100%;font-size:.245em;line-height:1.3;letter-spacing:.08em;padding:0 .1em 0 .06em;margin-top:.33em;font-weight:550;color:#b8caff;justify-content:space-between;overflow:clip;overflow-clip-margin:.12em}
+.identity-glyph{display:inline-block;position:relative;transform-origin:center 80%;transform-style:preserve-3d;line-height:1.15}
 .identity-glyph>span{display:block;transform-origin:50% 100%;backface-visibility:hidden}
-.glyph-face{position:relative;z-index:2;color:#edf2ff;text-shadow:0 1px 0 #ffffff30}
-.identity-row-1 .glyph-face{color:#bbccff}
+.glyph-face{position:relative;z-index:2;color:#edf2ff}.identity-row-1 .glyph-face{color:#c6d5ff}
 .identity-glyph .glyph-echo{position:absolute;inset:0;color:#174aff;opacity:0;pointer-events:none}
-.identity-glyph .echo-near{opacity:var(--echo,0);transform:translate(3px,5px)}
-.identity-glyph .echo-far{color:#638aff;opacity:calc(var(--echo,0)*.45);transform:translate(6px,9px)}
-.identity-light{position:absolute;inset:-10% -5%;pointer-events:none;background:linear-gradient(110deg,transparent 42%,#d4ff351a 47%,#c4d5ff30 50%,transparent 55%);mix-blend-mode:screen;opacity:0}
-.hero-identity:after{content:'';position:absolute;inset:-10% -5%;pointer-events:none;background:radial-gradient(ellipse 150px 130px at var(--light-x,50%) var(--light-y,50%),#d4ff3522,transparent 80%);opacity:var(--identity-light,0);mix-blend-mode:screen}
-.hero-identity:before{content:'';position:absolute;left:0;top:calc(100% + 10px);height:3px;width:45px;background:#d4ff35;box-shadow:55px 0 0 #174aff}
-.identity-replay{position:relative;pointer-events:auto;margin-top:34px;padding:6px 0;display:flex;gap:20px;align-items:center;font:9px var(--mono);letter-spacing:.08em;color:#889ed1;transition:color .25s;min-height:32px}
-.identity-replay span{font-size:18px;transition:transform .6s var(--ease);color:#d4ff35}.identity-replay:hover{color:#edf2ff}.identity-replay:hover span{transform:rotate(-90deg)}
-.identity-composition .hero-description{position:relative;left:auto;top:auto;max-width:32ch;margin-top:20px}
+.identity-glyph .echo-near{opacity:var(--echo,0);transform:translate(3px,5px)}.identity-glyph .echo-far{color:#638aff;opacity:calc(var(--echo,0)*.45);transform:translate(6px,9px)}
+.identity-light{position:absolute;inset:-10% -5%;pointer-events:none;background:linear-gradient(110deg,transparent 42%,#d4ff3512 47%,#c4d5ff35 50%,transparent 55%);mix-blend-mode:screen;opacity:0}
+.hero-identity:after{content:'';position:absolute;inset:-10% -5%;pointer-events:none;background:radial-gradient(ellipse 150px 130px at var(--light-x,50%) var(--light-y,50%),#739fff22,transparent 80%);opacity:var(--identity-light,0);mix-blend-mode:screen}
+.hero-identity:before{content:'';position:absolute;left:0;top:calc(100% + 22px);height:1px;width:100%;background:linear-gradient(90deg,#d4ff35 0 30px,#547fff66 30px,transparent)}
+.identity-replay{position:relative;pointer-events:auto;margin-top:39px;padding:6px 0;display:flex;gap:20px;align-items:center;font:9px var(--mono);letter-spacing:.08em;color:#889ed1;transition:color .25s;min-height:32px}.identity-replay span{font-size:18px;transition:transform .6s var(--ease);color:#d4ff35}.identity-replay:hover{color:#edf2ff}.identity-replay:hover span{transform:rotate(-90deg)}
+.identity-composition .hero-description{position:relative;left:auto;top:auto;max-width:32ch;margin-top:22px}
 .spatial-arrival{height:220svh}
-
-@media(min-width:761px) and (max-width:1100px){.hero-type .hero-identity{font-size:min(13vw,22vh)}}
-@media(max-width:760px){.hero-sequence{height:185svh}.hero-small{display:block;top:19%;font-size:8px}.identity-composition{top:23%;width:calc(100% - 48px)}.hero-type .hero-identity{font-size:22vw}.identity-row-1{font-size:.78em}.hero-identity:before{top:calc(100% + 8px);height:2px;width:30px;box-shadow:38px 0 0 #174aff}.identity-replay{margin-top:25px;font-size:8px;gap:14px}.identity-composition .hero-description{margin-top:12px;max-width:28ch;font-size:12px}.spatial-arrival{height:210svh}}
-@media(max-width:760px) and (max-height:700px){.hero-small{top:20%}.identity-composition{top:24%}.hero-type .hero-identity{font-size:21vw}.identity-replay{margin-top:22px}.identity-composition .hero-description{font-size:11px}}
-@media(min-width:761px) and (max-height:800px){.identity-composition{top:28%}.hero-type .hero-identity{font-size:min(12.2vw,19vh)}.identity-replay{margin-top:22px}.identity-composition .hero-description{margin-top:14px}}
+@media(max-width:760px){.hero-sequence{height:185svh}.hero-small{display:block;top:20%;font-size:8px}.identity-composition{top:25%;width:calc(100% - 48px)}.hero-type .hero-identity{font-size:19.2vw}.identity-row-1{font-size:.255em;margin-top:.45em}.hero-identity:before{top:calc(100% + 18px)}.identity-replay{margin-top:30px;font-size:8px;gap:14px}.identity-composition .hero-description{margin-top:12px;max-width:28ch;font-size:12px}.spatial-arrival{height:210svh}}
+@media(max-width:760px) and (max-height:700px){.hero-small{top:21%}.identity-composition{top:26%}.hero-type .hero-identity{font-size:18.8vw}.identity-replay{margin-top:28px}.identity-composition .hero-description{font-size:11px}}
+@media(min-width:761px) and (max-height:800px){.hero-small{top:25%}.identity-composition{top:31%}.hero-type .hero-identity{font-size:min(10.2vw,20vh)}.identity-replay{margin-top:36px}.identity-composition .hero-description{margin-top:14px}}
 .motion-off .hero-sequence{height:100svh}
 @media(prefers-reduced-motion:reduce){.hero-sequence{height:100svh}.identity-glyph{transform:none!important}.hero-identity:after{display:none}.identity-replay{display:none}}
 
@@ -74,3 +72,7 @@ html[data-finale=true] .contact-bottom>div>a{font-size:clamp(12px,1.05vw,18px)}
 @media(max-width:760px){.atlas-intro{top:22%;left:24px;right:24px;max-width:none}.atlas-intro>span{font-size:8px}.atlas-intro>p{font-size:43px;margin-top:17px}.atlas-intro small{display:none}}
 @media(min-width:761px) and (max-width:1100px){.atlas-intro{top:27%;max-width:320px}.atlas-intro>p{font-size:52px}}
 .hero-sequence{position:relative}.atlas-anchor{position:absolute;left:0;top:calc(100% - 100svh + 100px);width:1px;height:1px;pointer-events:none}
+
+/* A short native-scroll runway, omitted when motion or graphics are off. */
+.atlas-passage{height:115svh;pointer-events:none}.motion-off .atlas-passage,.spatial-fallback .atlas-passage{display:none}
+@media(prefers-reduced-motion:reduce){.atlas-passage{display:none}}

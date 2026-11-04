@@ -23,6 +23,8 @@ export function initIdentity(){
      {transform:'translate3d(0,0,0) rotateX(0deg) rotateZ(0deg)',opacity:echo?0:1,offset:1}
     ],{duration:1400+depth*95,delay:delay+depth*65,easing:'cubic-bezier(.16,1,.3,1)',fill:'backwards'}));
    }
+   const outline=glyph.querySelector?.('.letter-outline');
+   if(outline)animations.push(outline.animate([{strokeDashoffset:1,opacity:1},{strokeDashoffset:0,opacity:.9,offset:.7},{strokeDashoffset:0,opacity:0}],{duration:1400,delay:column*66,easing:'cubic-bezier(.22,1,.36,1)'}));
   });
   const light=title.querySelector('.identity-light');
   animations.push(light.animate([{transform:'translateX(-130%) skewX(-22deg)',opacity:0},{opacity:.85,offset:.25},{transform:'translateX(230%) skewX(-22deg)',opacity:0}],{duration:1350,delay:580,easing:'cubic-bezier(.22,1,.36,1)'}));

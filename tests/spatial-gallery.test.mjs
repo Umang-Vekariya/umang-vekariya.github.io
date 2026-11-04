@@ -28,7 +28,7 @@ test('curved gallery travel meets the next shot exactly and reverses without cam
 
 test('the overview journey joins its chapters and the first exhibit continuously',()=>{
  for(const portrait of [false,true]){
-  const chapters=['home','about','education','arrival'];
+  const chapters=['home','passage','about','education','arrival'];
   for(let i=0;i<chapters.length-1;i++)assert.deepEqual(spatialShot({chapter:chapters[i],progress:1,portrait}),spatialShot({chapter:chapters[i+1],progress:0,portrait}));
   assert.deepEqual(spatialShot({chapter:'arrival',progress:1,portrait}),spatialShot({chapter:'gallery',index:0,phase:0,portrait}));
   assert.deepEqual(spatialShot({chapter:'gallery',index:0,phase:.18,portrait}),stationShot(0,{portrait}));

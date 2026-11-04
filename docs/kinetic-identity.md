@@ -1,3 +1,5 @@
+> The original Manrope opening described below has been superseded by the custom cut-metal SVG wordmark in `atlas-passage.md`. The animation lifecycle and accessibility protections remain.
+
 # Kinetic opening identity — 4 November 2026
 
 The former italic first name and small tracked surname are replaced with a substantial two-line uppercase lockup. Manrope letterforms remain native HTML, with one accessible heading name and decorative layers hidden from assistive technology. The surname has a softer cobalt tint and nearly matches the first line's width. Name, replay and description share a normal flow stack so responsive font changes cannot overlap them.

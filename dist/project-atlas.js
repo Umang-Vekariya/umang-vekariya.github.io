@@ -1,19 +1,29 @@
 import * as THREE from 'three';
 import {roundedSolid} from './spatial-craft.js';
+import {smooth} from './engineering-motion.js';
 
 // The order keeps the first two builds at the center of a bound, physical index.
 export const atlasOrder=[6,4,2,0,1,3,5,7];
-export function atlasPose(index,opening=1,hovered=-1){
+export function atlasPose(index,opening=1,hovered=-1,parting=0){
  const slot=atlasOrder.indexOf(index),s=slot-3.5,t=Math.max(0,Math.min(1,opening)),active=(hovered<0?0:hovered)===index;
- return {x:s*(.14+.6*t),y:.95+(active?.42:0),z:.3-Math.abs(s)*.105+(active?1.05:0),rotation:[active?-.055:0,active?0:s*.035,active?0:-s*.065*t]};
+ const u=smooth(0,.48,parting),side=slot<4?-1:1,rank=slot<4?3-slot:slot-4;
+ const from={x:s*(.14+.6*t),y:.95+(active?.42:0),z:.3-Math.abs(s)*.105+(active?1.05:0),rotation:[active?-.055:0,active?0:s*.035,active?0:-s*.065*t]};
+ const to={x:side*(4.1+rank*1.35),y:.95,z:-rank*1.9,rotation:[0,-side*.23,side*.02]};
+ return {x:from.x+(to.x-from.x)*u,y:from.y+(to.y-from.y)*u,z:from.z+(to.z-from.z)*u,rotation:from.rotation.map((r,i)=>r+(to.rotation[i]-r)*u)};
 }
+export const atlasBankX=(side,parting=0)=>side*(2.1+4.025*smooth(0,.48,parting));
+// A wheel fling may skip several chapters. Keep the physical gap open until
+// the damped camera has cleared the folios, even if its new goal is the hero.
+export function atlasClearanceParting(requested,cameraZ,atlasZ=-26){return cameraZ>atlasZ-12&&cameraZ<atlasZ+11?Math.max(.48,requested):requested;}
 
 export function createProjectAtlas({projects,stories,materials,onLoad=()=>{}}){
- const group=new THREE.Group(),folios=[],targets=[],textures=[],ownedMaterials=[],images=[];let disposed=false;
+ const group=new THREE.Group(),folios=[],banks=[],targets=[],textures=[],ownedMaterials=[],images=[];let disposed=false;
  const bodyGeometry=roundedSolid(2.76,4.55,.14,.09),edgeGeometry=roundedSolid(2.79,4.58,.065,.09),coverGeometry=new THREE.PlaneGeometry(2.57,4.32);
- const base=new THREE.Mesh(roundedSolid(8.4,.42,2.35,.15),materials.dark);base.position.y=.42;group.add(base);
- const binding=new THREE.Mesh(roundedSolid(7.7,.11,1.8,.05),materials.metal);binding.position.set(0,.69,0);group.add(binding);
- const inlay=new THREE.Mesh(roundedSolid(7.5,.02,.025,.008),materials.lime);inlay.position.set(0,.57,1.18);group.add(inlay);
+ for(const side of [-1,1]){const bank=new THREE.Group();bank.position.x=atlasBankX(side);group.add(bank);banks.push(bank);
+  const base=new THREE.Mesh(roundedSolid(4.2,.42,2.35,.15),materials.dark);base.position.y=.42;bank.add(base);
+  const binding=new THREE.Mesh(roundedSolid(3.84,.11,1.8,.05),materials.metal);binding.position.set(0,.69,0);bank.add(binding);
+  const inlay=new THREE.Mesh(roundedSolid(3.7,.02,.025,.008),materials.lime);inlay.position.set(0,.57,1.18);bank.add(inlay);
+ }
  const footerLine=(c,text,x,y)=>{c.fillStyle='#8ca9ed';c.font='17px sans-serif';c.fillText(text,x,y);};
  const drawTitle=(c,text)=>{c.font='500 58px sans-serif';c.fillStyle='#f0f4ff';let y=161,line='';for(const word of text.split(' ')){const next=line?line+' '+word:word;if(c.measureText(next).width>510&&line){c.fillText(line,48,y);y+=67;line=word;}else line=next;}c.fillText(line,48,y);};
  for(let index=0;index<8;index++){
@@ -34,8 +44,9 @@ export function createProjectAtlas({projects,stories,materials,onLoad=()=>{}}){
   const hinge=new THREE.Mesh(roundedSolid(.15,.28,.55,.04),materials.metal);hinge.position.set(0,.05,0);root.add(hinge);
   const pose=atlasPose(index,1);root.position.set(pose.x,pose.y,pose.z);root.rotation.set(...pose.rotation);folios.push(root);
  }
- function update(opening,hovered,dt,motion){let settling=false;const k=motion?1-Math.exp(-dt*11):1;
-  folios.forEach((folio,i)=>{const p=atlasPose(i,opening,hovered),to=new THREE.Vector3(p.x,p.y,p.z);folio.position.lerp(to,k);folio.rotation.x+=(p.rotation[0]-folio.rotation.x)*k;folio.rotation.y+=(p.rotation[1]-folio.rotation.y)*k;folio.rotation.z+=(p.rotation[2]-folio.rotation.z)*k;settling ||= folio.position.distanceToSquared(to)>.00001||Math.abs(folio.rotation.z-p.rotation[2])>.0005||Math.abs(folio.rotation.x-p.rotation[0])>.0005;});return settling;
+ function update(opening,hovered,dt,motion,parting=0){let settling=false;const k=motion?1-Math.exp(-dt*11):1;
+  banks.forEach((bank,i)=>{const x=atlasBankX(i===0?-1:1,parting);bank.position.x+=(x-bank.position.x)*k;settling ||= Math.abs(bank.position.x-x)>.001;});
+  folios.forEach((folio,i)=>{const p=atlasPose(i,opening,hovered,parting),to=new THREE.Vector3(p.x,p.y,p.z);folio.position.lerp(to,k);folio.rotation.x+=(p.rotation[0]-folio.rotation.x)*k;folio.rotation.y+=(p.rotation[1]-folio.rotation.y)*k;folio.rotation.z+=(p.rotation[2]-folio.rotation.z)*k;settling ||= folio.position.distanceToSquared(to)>.00001||Math.abs(folio.rotation.z-p.rotation[2])>.0005||Math.abs(folio.rotation.x-p.rotation[0])>.0005||Math.abs(folio.rotation.y-p.rotation[1])>.0005;});return settling;
  }
- return {group,targets,update,folios,dispose(){disposed=true;images.forEach(i=>{i.onload=null;});textures.forEach(t=>t.dispose());ownedMaterials.forEach(m=>m.dispose());}};
+ return {group,targets,update,folios,banks,dispose(){disposed=true;images.forEach(i=>{i.onload=null;});textures.forEach(t=>t.dispose());ownedMaterials.forEach(m=>m.dispose());}};
 }
