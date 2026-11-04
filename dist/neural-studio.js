@@ -40,7 +40,7 @@ export function initNeuralStudio(){
    else if(test.accuracy>.95)announce('It is getting the unseen examples right. Reveal them, then add test noise to find the limits of that decision boundary.');
   }
  }
- function dimensions(c,context){const r=c.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,1.5);c.width=Math.max(1,Math.round(r.width*d));c.height=Math.max(1,Math.round(r.height*d));context.setTransform(d,0,0,d,0,0);return r;}
+ function dimensions(c,context){const r={width:c.clientWidth,height:c.clientHeight},d=Math.min(devicePixelRatio||1,1.5);c.width=Math.max(1,Math.round(r.width*d));c.height=Math.max(1,Math.round(r.height*d));context.setTransform(d,0,0,d,0,0);return r;}
  function resize(){const r=dimensions(canvas,ctx);w=r.width;h=r.height;dimensions(loss,lc);dimensions(wires,wc);schedule();}
  function pointToPixel(p){const pad=38;return [pad+(p.x+1)*.5*(w-pad*2),pad+(1-p.y)*.5*(h-pad*2)];}
  function pixelToPoint(x,y){const pad=38;return {x:Math.max(-1,Math.min(1,(x-pad)/(w-pad*2)*2-1)),y:Math.max(-1,Math.min(1,1-(y-pad)/(h-pad*2)*2))};}
@@ -85,9 +85,9 @@ export function initNeuralStudio(){
  }
  function colorFeature(value){const t=(value+1)/2;return palette.a.map((a,i)=>Math.round(a*(1-t)+palette.b[i]*t));}
  function drawNetwork(){
-  const r=wires.getBoundingClientRect();if(!r.width||!r.height)return;wc.clearRect(0,0,r.width,r.height);
+  const r={width:wires.clientWidth,height:wires.clientHeight};if(!r.width||!r.height)return;wc.clearRect(0,0,r.width,r.height);
   const layers=[$$('#studio-network .studio-input'),features.filter(f=>f.layer===1).map(f=>f.el),features.filter(f=>f.layer===2).map(f=>f.el),[$('#studio-output')]];
-  const center=e=>{const b=e.getBoundingClientRect();return [b.x-r.x+b.width/2,b.y-r.y+b.height/2];};
+  const center=e=>{let x=e.offsetWidth/2,y=e.offsetHeight/2;for(let n=e;n&&n!==$('#studio-network');n=n.offsetParent){x+=n.offsetLeft;y+=n.offsetTop;}return [x,y];};
   for(let l=0;l<3;l++)for(let j=0;j<layers[l].length;j++)for(let k=0;k<layers[l+1].length;k++){
    const weight=l===0?network.w1[k][j]:l===1?network.w2[k][j]:network.w3[j],a=center(layers[l][j]),b=center(layers[l+1][k]);
    const chosen=selected&&(selected.layer===l&&selected.index===j||selected.layer===l+1&&selected.index===k),opacity=Math.min(.42,.04+Math.abs(weight)*.10)*(selected&&!chosen ? .35 : 1);
@@ -96,7 +96,7 @@ export function initNeuralStudio(){
   for(const f of features){const im=f.ctx.createImageData(16,16);for(let y=0;y<16;y++)for(let x=0;x<16;x++){const value=network.activation(x/15*2-1,1-y/15*2,f.layer,f.index),c=colorFeature(value),i=(y*16+x)*4;im.data[i]=c[0]*.6;im.data[i+1]=c[1]*.6;im.data[i+2]=c[2]*.6;im.data[i+3]=255;}f.ctx.putImageData(im,0,0);}
  }
  function drawLoss(){
-  const r=loss.getBoundingClientRect(),ch=r.height,cw=r.width;if(!cw||!ch)return;lc.clearRect(0,0,cw,ch);lc.lineWidth=.6;lc.strokeStyle='#7a9cff25';for(let i=1;i<4;i++){lc.beginPath();lc.moveTo(0,ch*i/4);lc.lineTo(cw,ch*i/4);lc.stroke();}
+  const ch=loss.clientHeight,cw=loss.clientWidth;if(!cw||!ch)return;lc.clearRect(0,0,cw,ch);lc.lineWidth=.6;lc.strokeStyle='#7a9cff25';for(let i=1;i<4;i++){lc.beginPath();lc.moveTo(0,ch*i/4);lc.lineTo(cw,ch*i/4);lc.stroke();}
   if(history.length<2)return;const max=Math.max(.2,...history.flatMap(v=>[v.train||0,v.test||0]));
   for(const [key,color] of [['train','#668cff'],['test','#d4ff35']]){lc.beginPath();let started=false;history.forEach((v,i)=>{if(v[key]===null)return;const x=i/(history.length-1)*cw,y=ch-3-v[key]/max*(ch-6);started?lc.lineTo(x,y):lc.moveTo(x,y);started=true;});lc.strokeStyle=color;lc.lineWidth=1.4;lc.stroke();}
  }

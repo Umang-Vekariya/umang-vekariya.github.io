@@ -1,0 +1,13 @@
+# Neural Studio → closing space — 4 November 2026
+
+The live Neural Studio becomes a physical display when the visitor scrolls beyond the tool. The camera then holds a separate cobalt studio while the existing “Let’s build what’s next” contact content enters. The hero, personal overview, project gallery and eight project engines are preserved.
+
+The original console is wrapped and projected onto the display using a four-corner homography. Its real canvas, tabs, controls, worker and model state remain the same nodes and instances. The starting camera is derived from the actual console rectangle, including a console taller than the viewport. One deterministic scroll parameter drives the reveal and its reverse. No timed camera flight competes with this chapter, and the closing installation exists from renderer initialization.
+
+Phone layouts show a viewport into the same console; the window pans back toward the prediction field as the camera retreats. The closing title and contact links follow beneath it. The tool remains native and usable before the reveal. Control focus prevents a changing pane height or automatic focus scroll from prematurely entering the 3D scene; intentional scrolling releases that guard. The scaled console becomes inert and its live-region announcements stop while it is in the distance, then restore on return. Motion-off, reduced-motion and graphics-free modes retain the native tool and contact layout without the extra reveal distance.
+
+Neural canvas sizing and network-wire coordinates use their local layout dimensions, so perspective scaling does not resize the model's field or distort the inspection diagram. The 3D renderer stops once the camera settles; training continues through the live DOM when the user has started it. No screenshot rasterization or duplicate studio application is used.
+
+Validation: 24 tests cover the retained model/worker/project/geometry behaviors, exact source-rectangle projection at six viewport combinations, continuous reversible camera poses, every mapped corner and the focus/scroll/motion-off handoff. Build, reference/syntax and whitespace checks pass. Browser review covered 1440×900 and 390×844 compositions, native training from epoch 88 through 2340 during the reveal, selected-neuron persistence on return, keyboard drawing from 120 to 121 examples and undo back to 120, phone motion-off pattern selection and graphics-free startup. No frame-rate score, Core Web Vitals score or physical-device certification is claimed.
+
+Recovery: `backup/before-neural-finale-2026-11-04` preserves `fce21fc5b15aaf383a4bc64589ef80ac580f7685`. Local screenshots and the temporary review harness are stored outside the deployment under `backups/neural-studio-finale-2026-11-04/qa/`.

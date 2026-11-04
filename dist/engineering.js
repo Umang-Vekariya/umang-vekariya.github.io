@@ -1,3 +1,4 @@
+import {initStudioFinale} from './studio-finale.js?v=2';
 import {profile,projects,experiences,skills,certificates} from './portfolio-data.js?v=2';
 import {projectStories} from './project-stories.js';
 import {projectProof} from './project-proof.js';
@@ -11,7 +12,8 @@ const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const root=document.documentElement,reduced=matchMedia('(prefers-reduced-motion: reduce)'),surfaces=['#12338f','#0f2261','#163fb4','#10235f','#11327a','#1434a0','#0d2166','#193e9d'];
 let motion=!reduced.matches,preview,activeId=null,phase=0,origin=null,flight=null,flightTicket=0,returnFocus=null,priorHash='',studioStarted=false,studyVisible=false,closeTicket=0,navigationFlight=null,navigationTicket=0,sectionScrollFrame=0;
 let spatialController=null,worldStarted=false,worldBootReady=false,worldState={chapter:'home',progress:0,index:0,phase:0},galleryIndex=0,galleryStep=0,galleryVisible=false,galleryLive=false,manualStep=false,directMove=false;
-const galleryLiveProjects=new Set();
+if(navigator.connection?.saveData||new URL(location.href).searchParams.get('graphics')==='off')root.classList.add('spatial-fallback');
+const galleryLiveProjects=new Set(),studioFinale=initStudioFinale(()=>queueFrame());
 root.dataset.sceneMode='space';root.classList.add('js-reveal');
 const reveal=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){e.target.classList.add('is-visible');reveal.unobserve(e.target);}},{rootMargin:'0px 0px -35px 0px',threshold:.05});
 $$('.reveal').forEach(el=>reveal.observe(el));
@@ -79,7 +81,7 @@ function chapterState(){
  if(y<contact.offsetTop-innerHeight*.4)return {chapter:'lab',progress:0,index:galleryIndex,phase:0};
  return {chapter:'contact',progress:phase(contact,contact.offsetTop+contact.offsetHeight-innerHeight),index:galleryIndex,phase:0};
 }
-function updateSpace(){worldState=chapterState();galleryVisible=worldState.chapter==='gallery';root.dataset.spaceChapter=worldState.chapter;
+function updateSpace(){worldState=chapterState();const finale=studioFinale.update({motion,fallback:root.classList.contains('spatial-fallback')});if(finale.active){worldState={chapter:'finale',progress:finale.progress,index:galleryIndex,phase:0,screen:finale.screen};startStudio();}galleryVisible=worldState.chapter==='gallery';root.dataset.spaceChapter=worldState.chapter;
  if(galleryVisible){if(worldState.index!==galleryIndex){if(galleryLive||manualStep||galleryStep>0)galleryLiveProjects.add(galleryIndex);galleryIndex=worldState.index;manualStep=false;galleryLive=galleryLiveProjects.has(galleryIndex);}if(!manualStep)galleryStep=Math.min(2,Math.floor(worldState.phase/.24));renderGallery(galleryIndex);}
  syncDemo();worldState.live=galleryLive||manualStep||galleryStep>0;spatialController?.update(worldState,{direct:directMove});directMove=false;if(worldBootReady)ensureWorld();
 }
@@ -143,13 +145,14 @@ let scrollFrame=0;
 function updateFrame(){scrollFrame=0;const section=$('.hero-sequence'),progress=clamp(-section.getBoundingClientRect().top/Math.max(1,section.offsetHeight-innerHeight)),pose=titleFrame(progress,{portrait:innerWidth<760,motion});$('.hero-type').style.opacity=pose.typeOpacity;$('.hero-type').style.transform=`translateY(${pose.typeY}px)`;$('.hero-top').style.opacity=pose.typeOpacity;$('.hero-bottom').style.opacity=pose.typeOpacity;$('.hero-bottom').inert=pose.typeOpacity<.1;$('.passage-caption').style.opacity=pose.caption;$('.hero-sticky').style.setProperty('--passage-wash',pose.wash);const art=$('#hero-art'),shift=(innerWidth/2-(art.offsetLeft+art.offsetWidth/2))*smoothCenter(progress);art.style.transform=`translateX(${shift}px) scale(${pose.artScale})`;$('.header').classList.toggle('scrolled',scrollY>90);updateSpace();}
 function smoothCenter(p){const t=clamp(p/.65);return t*t*(3-2*t);}
 function queueFrame(){if(!scrollFrame)scrollFrame=requestAnimationFrame(updateFrame);}addEventListener('scroll',queueFrame,{passive:true});addEventListener('resize',queueFrame);setMotion(motion);
-const labObserver=new IntersectionObserver(entries=>{if(!studioStarted&&entries.some(e=>e.isIntersecting)){studioStarted=true;import('./neural-studio.js?v=6').then(m=>m.initNeuralStudio()).catch(()=>$('#studio-insight').textContent='The experiment could not load. Refresh to try again.');labObserver.disconnect();}},{rootMargin:'200px'});labObserver.observe($('#lab'));
+function startStudio(){if(studioStarted)return;studioStarted=true;import('./neural-studio.js?v=7').then(m=>m.initNeuralStudio()).catch(()=>$('#studio-insight').textContent='The experiment could not load. Refresh to try again.');}
+const labObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){startStudio();labObserver.disconnect();}},{rootMargin:'200px'});labObserver.observe($('#lab'));
 // One renderer owns the complete world and its eight real project displays.
 function ensureWorld(){
  if(worldStarted||document.querySelector('dialog[open]')||['lab','index'].includes(worldState.chapter))return;
  worldStarted=true;formObserver.disconnect();
- if(navigator.connection?.saveData||new URL(location.href).searchParams.get('graphics')==='off'){root.classList.add('spatial-fallback');return;}
- import('./spatial-world.bundle.js?v=19').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine);if(!spatialController)root.classList.add('spatial-fallback');else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');});
+ if(navigator.connection?.saveData||new URL(location.href).searchParams.get('graphics')==='off'){root.classList.add('spatial-fallback');queueFrame();return;}
+ import('./spatial-world.bundle.js?v=21').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
 }
 const formObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))ensureWorld();},{rootMargin:'0px'});formObserver.observe($('#home'));worldBootReady=true;ensureWorld();
 $$('dialog').forEach(d=>{d.addEventListener('toggle',()=>{if(d.open)spatialController?.release();syncDemo();});d.addEventListener('close',()=>{preview?.resume();requestAnimationFrame(()=>{ensureWorld();spatialController?.update(worldState);syncDemo();});});});
