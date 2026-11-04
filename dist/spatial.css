@@ -98,17 +98,32 @@ html[data-finale=true] .contact-bottom>div>a{font-size:clamp(12px,1.05vw,18px)}
 /* Scene-lit solid type, paired with native text on the same rigid surfaces. */
 .mesh-identity-ready .hero-identity .identity-row,.mesh-identity-ready .identity-light{opacity:0!important}
 .mesh-identity-ready .hero-identity:before,.mesh-identity-ready .hero-identity:after{display:none}
-.mesh-identity-ready .world-caption>span,.mesh-identity-ready .world-caption>em{opacity:0}
+
 .world-surface-slot{display:block!important;padding:0!important;border:0!important;transform:none!important}
 .scene-type-surface{position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;margin:0!important;transform-origin:0 0;backface-visibility:hidden;will-change:transform}
-.world-lettering-ready .mesh-heading{opacity:0!important}
+.world-lettering-ready .mesh-heading{font-variant-ligatures:none}
 .scene-type-surface .reveal{transform:none!important;transition:none!important;opacity:1}
 .world-lettering-ready .about-section,.world-lettering-ready .education-section,.world-lettering-ready .spatial-arrival,.world-lettering-ready .contact-section{background:transparent}
 .world-lettering-ready .gallery-shade{background:linear-gradient(90deg,#03051122,transparent 70%)}
-.world-lettering-ready #lab.neural-studio:before{opacity:0}
-.scene-type-surface p,.scene-type-surface .eyebrow{text-shadow:0 2px 12px #03051180}
+.world-lettering-ready #lab.neural-studio:before{opacity:calc(.97 * (1 - var(--finale-open,0)))}
+.scene-type-surface p,.scene-type-surface .eyebrow{text-shadow:none}
 .scene-type-surface:focus-visible{outline:2px solid #d4ff35;outline-offset:8px}
 .world-surface-slot:has(>.mesh-heading:focus-visible){outline:2px solid #d4ff35;outline-offset:8px}
 .world-lettering-ready[data-finale=true] #contact{background:transparent}
 @media(max-width:759px){.hero-bottom>.world-surface-slot{display:none!important}}
 @media(prefers-reduced-motion:reduce){.scene-type-surface{will-change:auto}}
+
+@font-face{font-family:"UV Manrope";src:url("assets/fonts/manrope-variable.woff") format("woff");font-style:normal;font-weight:200 800;font-display:swap}
+@font-face{font-family:"UV Instrument Serif";src:url("assets/fonts/instrument-italic.woff") format("woff");font-style:italic;font-weight:400;font-display:swap}
+@font-face{font-family:"UV Instrument Serif";src:url("assets/fonts/instrument-regular.woff") format("woff");font-style:normal;font-weight:400;font-display:swap}
+:root{--display:"UV Manrope",Manrope,sans-serif;--serif:"UV Instrument Serif",Georgia,serif}
+.world-lettering-ready .display em{color:#d4ff35}
+.world-lettering-ready .world-caption{font-variant-ligatures:none}
+.world-lettering-ready h2,.world-lettering-ready h3,.world-lettering-ready .cgpa,.world-lettering-ready .contact-title{font-variant-ligatures:none}
+.about-layout .display em,.education-heading .display em,#studio-heading em{margin-inline-start:.025em}
+
+/* The native face and its relief share the same readable tracking. */
+.world-caption{letter-spacing:-.035em}.world-caption em{letter-spacing:-.015em}
+.experience-item h3,.gallery-copy h3{letter-spacing:-.02em}
+.gallery-copy h2{letter-spacing:-.04em}
+@media(max-width:759px){.gallery-copy h2{letter-spacing:-.025em}}

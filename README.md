@@ -49,7 +49,7 @@ The old rooms and corridor have been retired; this is one shared open space. The
 
 The pre-redesign baseline is also archived outside this checkout at `../backups/before-art-of-engineering-2026-11-03/github-pages.tar.gz`, with its SHA in `commit.txt`. The original private Sites checkout remains separate.
 
-See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The 40 regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.
+See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The 44 regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.
 
 The real Neural Studio pulls back into a separate cobalt closing space as the visitor scrolls beyond the tool. Its original DOM, canvas and worker remain in place; see [studio-finale.md](docs/studio-finale.md) for the reversible camera/HTML handoff, mobile window and verification.
 
@@ -62,3 +62,5 @@ The project atlas parts into two groups of four to make a physical camera passag
 The atlas now rests as an overlapping hand with no default selection. Hover lifts and outlines any card, including after the banks separate. Stable full-border hit regions keep the response steady. See `docs/card-hand.md`.
 
 The opening identity and transition phrase now occupy fixed world planes to the left of their installations, with genuine camera perspective and a clear central path. Native SVG/HTML retains sharp lettering and the original name interaction. See [spatial-copy.md](docs/spatial-copy.md).
+
+The narrative typography repair uses matching self-hosted Manrope and Instrument Serif fonts, exact native character spacing, and shallow matching outline relief. Reading surfaces stay stable through actual camera and lens movement; interactive surfaces preserve their native hit targets. See [typography-repair.md](docs/typography-repair.md) for the replacement architecture, licenses and verification.

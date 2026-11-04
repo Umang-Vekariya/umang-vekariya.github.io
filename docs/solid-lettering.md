@@ -1,3 +1,5 @@
+> Narrative implementation superseded by [the typography repair](typography-repair.md). The custom solid hero remains; generic fitted heading meshes and hidden native heading faces have been replaced.
+
 # Solid identity and spatial narrative type
 
 The opening name now consists of actual bevelled, extruded Three.js meshes. Its five custom UMANG outlines have continuous faces, proper counters and cobalt side walls. The diagonal SVG masks have also been removed from the native fallback. VEKARIYA is separately modelled with deliberate tracking. Both rows occupy the existing left-side world anchor; they do not cover the central camera route.

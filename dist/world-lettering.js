@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import {identityShapes,extrudedLettering,textGeometry,surfaceFrame,letterPose,flowTextLines} from './lettering-geometry.js';
-import {copyAnchors,copyOpacity,projectCopy} from './spatial-copy.js';
+import {identityShapes,extrudedLettering,textGeometry,letterPose} from './lettering-geometry.js';
+import {createNarrativeTypesetter,narrativeFontKey,worldPlaneMatrix,readingSurface} from './narrative-lettering.js';
+import {copyAnchors,copyOpacity} from './spatial-copy.js';
 import {screenTransform} from './studio-reveal-motion.js';
 
 function planeMatrix(points,width){
@@ -10,19 +11,21 @@ function planeMatrix(points,width){
  return new THREE.Matrix4().makeBasis(right,up,normal).scale(new THREE.Vector3(scale,scale,scale)).setPosition(points[0]);
 }
 
-// Read actual line breaks, including wrapped text and separately styled emphasis.
-// This runs on layout/content changes, never as part of the frame loop.
-function headingLines(element,origin){
- const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT),lines=[];let node;
+function headingGlyphs(element,origin,typesetter,metrics){
+ const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT),glyphs=[];let node;
  while((node=walker.nextNode())){
-  if(node.parentElement.closest('[aria-hidden=true],b')||!node.textContent.trim())continue;
-  const samples=[],range=document.createRange(),accent=Boolean(node.parentElement.closest('em,.cgpa'));
+  const hidden=node.parentElement.closest('[aria-hidden=true]');
+  if(node.parentElement.closest('b')||(hidden&&element.contains(hidden))||!node.textContent.trim())continue;
+  const style=getComputedStyle(node.parentElement),size=parseFloat(style.fontSize),fontKey=narrativeFontKey(style.fontFamily,style.fontWeight,style.fontStyle),font=`${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  if(!metrics.has(font)){const context=document.createElement('canvas').getContext('2d');context.font=font;metrics.set(font,context.measureText('Hg').fontBoundingBoxAscent||typesetter.ascender(fontKey,size));}
+  const range=document.createRange(),accent=Boolean(node.parentElement.closest('em,.cgpa'));
   for(let i=0;i<node.textContent.length;i++){
+   const character=node.textContent[i];if(!character.trim())continue;
    range.setStart(node,i);range.setEnd(node,i+1);const r=range.getBoundingClientRect();if(!r.width||!r.height)continue;
-   samples.push({text:node.textContent[i],...r.toJSON()});
-  }lines.push(...flowTextLines(samples,origin,accent));
+   glyphs.push({character,fontKey,size,x:r.left-origin.left,baseline:r.top-origin.top+metrics.get(font),accent});
+  }
  }
- return lines.filter(l=>l.text.trim()&&l.width>0);
+ return glyphs;
 }
 
 export function createWorldLettering(scene,schedule){
@@ -32,6 +35,10 @@ export function createWorldLettering(scene,schedule){
  const edge=new THREE.MeshPhysicalMaterial({color:0x1648ed,metalness:.72,roughness:.25,clearcoat:.45,envMapIntensity:1.5,fog:false});
  const accent=new THREE.MeshPhysicalMaterial({color:0xd4ff35,metalness:.28,roughness:.32,envMapIntensity:.8,emissive:0x799900,emissiveIntensity:.2,fog:false});
  const nameFace=face.clone(),nameEdge=edge.clone(),captionFace=face.clone(),captionEdge=edge.clone(),captionAccent=accent.clone();
+ // Narrative depth should read as cobalt, without the bright environmental
+ // reflections that suit the large hero sculpture and its metal wordmark.
+ edge.metalness=.3;edge.roughness=.4;edge.clearcoat=.1;edge.envMapIntensity=.3;edge.emissive.set(0x0825a8);edge.emissiveIntensity=.16;
+ captionEdge.copy(edge);
  for(const m of [nameFace,nameEdge,captionFace,captionEdge,captionAccent])m.transparent=true;
  const nameRoot=new THREE.Group(),nameMotion=new THREE.Group(),captionRoot=new THREE.Group(),letters=[];
  nameRoot.matrixAutoUpdate=false;captionRoot.matrixAutoUpdate=false;nameMotion.position.set(360,-160,0);nameRoot.add(nameMotion);scene.add(nameRoot,captionRoot);
@@ -44,15 +51,6 @@ export function createWorldLettering(scene,schedule){
   const geometry=textGeometry(letter,{depth:14,bevel:1.2});geometry.scale(.34,.34,.34);geometry.computeBoundingBox();
   const mesh=new THREE.Mesh(geometry,[nameFace,nameEdge]);mesh.layers.set(1);mesh.position.set(17+i*88-geometry.boundingBox.min.x-360,-113,0);mesh.userData.rest=mesh.position.clone();nameMotion.add(mesh);letters.push(mesh);
  }
- function lineMesh(line,parent,{depth=18,bevel=1.1,materials=[line.accent?accent:face,edge]}={}){
-  const geometry=textGeometry(line.text.trim(),{depth,bevel}),b=geometry.boundingBox,w=b.max.x-b.min.x,h=b.max.y-b.min.y;
-  if(!(w>0&&h>0)){geometry.dispose();return;}
-  const inset=line.accent&&line.left>20?Math.min(10,line.height*.09):0,scale=Math.min((line.width-inset)/w,line.height*.83/h);geometry.translate(-b.min.x,-b.min.y,0);geometry.scale(scale,scale,scale);
-  const mesh=new THREE.Mesh(geometry,materials);mesh.layers.set(1);mesh.position.set(line.left+inset,-line.top-line.height*.88,0);parent.add(mesh);return mesh;
- }
- lineMesh({text:'From a question.',left:0,top:0,width:650,height:86},captionRoot,{materials:[captionFace,captionEdge]});
- lineMesh({text:'To a possibility.',left:0,top:94,width:650,height:106,accent:true},captionRoot,{materials:[captionAccent,captionEdge]});
-
  const surfaceConfigs=[
   ['.hero-top',null],['.hero-bottom>div',null],
   ['#about>.chapter-rule',null],['.about-layout','#about-title'],
@@ -63,7 +61,7 @@ export function createWorldLettering(scene,schedule){
   ['#contact>.chapter-rule',null],['.contact-kicker',null],['#contact-title','#contact-title'],['.contact-bottom',null],
   ['.footer',null]
  ];
- const panels=[],headingLabels=new Map();let dirty=true,disposed=false,start=performance.now(),lastIndex=-1,lastFinale='',pointer={x:0,y:0,h:0},aim={x:0,y:0,h:0};
+ const panels=[],metrics=new Map();let typesetter=null,dirty=true,disposed=false,start=performance.now(),lastIndex=-1,lastFinale='',pointer={x:0,y:0,h:0},aim={x:0,y:0,h:0};
  for(const [selector,headings] of surfaceConfigs){
   const element=document.querySelector(selector);if(!element)continue;
   const slot=document.createElement('div');slot.className=element.className+' world-surface-slot';element.before(slot);slot.append(element);
@@ -71,28 +69,36 @@ export function createWorldLettering(scene,schedule){
   const group=new THREE.Group();group.matrixAutoUpdate=false;scene.add(group);panels.push({element,slot,style,group,headings,headingNodes:[]});
  }
  root.classList.add('world-lettering-ready','mesh-identity-ready');
+ function replaceRelief(group,records,materials){
+  for(const child of [...group.children]){child.geometry.dispose();group.remove(child);}
+  const geometry=typesetter?.compose(records);if(geometry){const mesh=new THREE.Mesh(geometry,materials);mesh.layers.set(1);group.add(mesh);}
+ }
  function measure(){
   dirty=false;
   for(const p of panels){
    p.element.style.transform='';const r=p.slot.getBoundingClientRect();
-   for(const child of [...p.group.children]){child.geometry.dispose();p.group.remove(child);}
    if(!r.width)continue;
    const headings=p.headings?(p.element.matches(p.headings)?[p.element]:[...p.element.querySelectorAll(p.headings)]):[];
    p.headingNodes.forEach(h=>h.classList.remove('mesh-heading'));p.headingNodes=headings;
-   for(const heading of headings){const lines=headingLines(heading,r);for(const line of lines)lineMesh(line,p.group);if(lines.length){if(!headingLabels.has(heading))headingLabels.set(heading,heading.getAttribute('aria-label'));heading.setAttribute('aria-label',heading.innerText.replace(/[↗↘]/g,'').replace(/\s+/g,' ').trim());heading.classList.add('mesh-heading');}}
+   const records=[];for(const heading of headings){heading.classList.add('mesh-heading');if(typesetter)records.push(...headingGlyphs(heading,r,typesetter,metrics));}
+   replaceRelief(p.group,records,[face,edge,accent]);
   }
-  const anchors=copyAnchors(innerWidth,innerHeight);nameRoot.matrix.copy(planeMatrix(anchors.name,720));nameMotion.scale.setScalar(innerWidth<760?.94:1);captionRoot.matrix.copy(planeMatrix(anchors.caption,720));
+  const caption=document.querySelector('.world-caption'),prior=caption.style.transform;caption.style.transform='';const r=caption.getBoundingClientRect(),records=[];
+  if(typesetter)for(const heading of caption.querySelectorAll(':scope>span,:scope>em'))records.push(...headingGlyphs(heading,r,typesetter,metrics));
+  replaceRelief(captionRoot,records,[captionFace,captionEdge,captionAccent]);caption.style.transform=prior;
+  const anchors=copyAnchors(innerWidth,innerHeight);nameRoot.matrix.copy(planeMatrix(anchors.name,720));nameMotion.scale.setScalar(innerWidth<760?.94:1);captionRoot.matrix.copy(worldPlaneMatrix(anchors.caption,720,360,screenTransform));
  }
  const mark=()=>{if(disposed)return;dirty=true;schedule();};
  const observer=new ResizeObserver(mark);panels.forEach(p=>observer.observe(p.element));
- const observedText=['#gallery-title','#gallery-step-title','#experience-list'].map(s=>document.querySelector(s)),textCache=new Map(observedText.map(e=>[e,e.textContent]));
+ const observedText=['#gallery-title','#gallery-step-title','#experience-list'].map(s=>document.querySelector(s)).filter(Boolean),textCache=new Map(observedText.map(e=>[e,e.textContent]));
  const contentObserver=new MutationObserver(()=>{let changed=false;for(const e of observedText)if(textCache.get(e)!==e.textContent){textCache.set(e,e.textContent);changed=true;}if(changed)mark();});for(const e of observedText)contentObserver.observe(e,{subtree:true,childList:true,characterData:true});
- document.fonts.ready.then(mark);
+ document.fonts.ready.then(()=>{metrics.clear();mark();});
+ fetch(new URL('./assets/fonts/narrative-outlines.json',import.meta.url)).then(r=>{if(!r.ok)throw new Error('Font outlines unavailable');return r.json();}).then(data=>{if(disposed)return;typesetter=createNarrativeTypesetter(data);title.dataset.relief='ready';mark();}).catch(()=>{if(!disposed)title.dataset.typeFallback='native';});
  const pointerMove=e=>{if(e.pointerType==='touch'||!motionAllowed())return;const r=title.getBoundingClientRect();pointer={x:THREE.MathUtils.clamp((e.clientX-r.left)/r.width-.5,-.5,.5),y:THREE.MathUtils.clamp((e.clientY-r.top)/r.height-.5,-.5,.5),h:1};schedule();};
  const pointerLeave=()=>{pointer={x:0,y:0,h:0};if(motionAllowed())schedule();};
  const replayName=()=>{if(!motionAllowed())return;start=performance.now();schedule();};title.addEventListener('pointermove',pointerMove);title.addEventListener('pointerleave',pointerLeave);replay.addEventListener('click',replayName);addEventListener('blur',pointerLeave);
- const reference=new THREE.PerspectiveCamera(),temp=new THREE.Vector3();
- function update(camera,state,shot,now,dt,motion){
+ const temp=new THREE.Vector3();
+ function update(camera,state,now,dt,motion){
   if(disposed)return false;
   if(state.index!==lastIndex||root.dataset.finale!==lastFinale){dirty=true;lastIndex=state.index;lastFinale=root.dataset.finale;}
   if(dirty)measure();
@@ -103,22 +109,21 @@ export function createWorldLettering(scene,schedule){
    const pose=letterPose(i,now-start,{motion,x:aim.x,y:aim.y,hover:aim.h});mesh.position.copy(mesh.userData.rest).add(temp.set(pose.x,pose.y,pose.z));mesh.rotation.set(pose.rx,pose.ry,pose.rz);moving||=pose.moving&&nameOpacity>0;
   }
   nameMotion.rotation.set(aim.y*.045,-.17+aim.x*.12,0);
-  reference.fov=shot.fov;reference.aspect=innerWidth/innerHeight;reference.position.set(...shot.position);reference.lookAt(new THREE.Vector3(...shot.target));reference.updateProjectionMatrix();reference.updateMatrixWorld();
   for(const p of panels){
    const r=p.slot.getBoundingClientRect();if(!r.width||!r.height||r.bottom<-innerHeight||r.top>innerHeight*2){p.group.position.set(0,0,0);p.group.matrix.makeTranslation(0,-10000,0);continue;}
-   const frame=surfaceFrame({...r.toJSON(),viewportWidth:innerWidth,viewportHeight:innerHeight},reference,{depth:14,yaw:innerWidth<760?-.035:-.065});
-   // Both representations share this exact rigid plane. Native prose supplies
+   const interactive=Boolean(p.element.querySelector('button,input,select')||p.element.matches('a,.chapter-rule,.footer,.hero-top'));
+   const frame=readingSurface({...r.toJSON(),viewportWidth:innerWidth,viewportHeight:innerHeight},camera,{interactive});
+   // Both representations share this exact planar quadrilateral. Native prose supplies
    // selection, focus and control hit testing; the scene supplies sculpted type.
-   const matrix=frame.matrix.clone().multiply(new THREE.Matrix4().makeTranslation(-r.width/2,r.height/2,0));p.group.matrix.copy(matrix);
-   const points=projectCopy(frame.points,camera,innerWidth,innerHeight),transform=points&&screenTransform(points.map(q=>({x:q.x-r.left,y:q.y-r.top})),r.width,r.height);
+   p.group.matrix.copy(worldPlaneMatrix(frame.points,r.width,r.height,screenTransform));
+   const transform=screenTransform(frame.screenPoints.map(q=>({x:q.x-r.left,y:q.y-r.top})),r.width,r.height);
    p.element.style.transform=transform?`matrix3d(${transform.join(',')})`:'';
   }
   title.dataset.sculpted='true';title.dataset.typeFrame=String(Math.round(now));title.dataset.animating=String(moving);return moving||(nameOpacity>0&&Math.abs(aim.x-pointer.x)+Math.abs(aim.y-pointer.y)+Math.abs(aim.h-pointer.h)>.002&&motion);
  }
  return {update,resize:mark,dispose(){
   if(disposed)return;disposed=true;observer.disconnect();contentObserver.disconnect();title.removeEventListener('pointermove',pointerMove);title.removeEventListener('pointerleave',pointerLeave);replay.removeEventListener('click',replayName);removeEventListener('blur',pointerLeave);
-  root.classList.remove('world-lettering-ready','mesh-identity-ready');delete title.dataset.sculpted;delete title.dataset.typeFrame;
-  for(const [heading,label] of headingLabels){if(label===null)heading.removeAttribute('aria-label');else heading.setAttribute('aria-label',label);}
+  root.classList.remove('world-lettering-ready','mesh-identity-ready');delete title.dataset.sculpted;delete title.dataset.typeFrame;delete title.dataset.typeFallback;delete title.dataset.relief;typesetter?.dispose();
   for(const p of panels){p.headingNodes.forEach(h=>h.classList.remove('mesh-heading'));p.element.classList.remove('scene-type-surface');if(p.style===null)p.element.removeAttribute('style');else p.element.setAttribute('style',p.style);p.slot.replaceWith(p.element);}
  }};
 }
