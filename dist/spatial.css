@@ -76,3 +76,21 @@ html[data-finale=true] .contact-bottom>div>a{font-size:clamp(12px,1.05vw,18px)}
 /* A short native-scroll runway, omitted when motion or graphics are off. */
 .atlas-passage{height:115svh;pointer-events:none}.motion-off .atlas-passage,.spatial-fallback .atlas-passage{display:none}
 @media(prefers-reduced-motion:reduce){.atlas-passage{display:none}}
+
+/* Crisp native lettering, projected from fixed planes in the same 3D world. */
+#spatial-copy-layer{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.spatial-copy{position:absolute;left:0;top:0;transform-origin:0 0;backface-visibility:hidden;visibility:hidden;will-change:transform;pointer-events:none}
+.spatial-copy-ready #atlas-intro{display:none!important}.spatial-copy-ready .hero-type{background:none}
+.world-name{width:720px;height:620px}
+.world-name>.hero-small{position:static;display:block;font:14px/1.5 var(--mono);letter-spacing:.14em;margin:0 0 24px;color:#9fb7ef}
+.world-name .identity-composition{position:static;left:auto;top:auto;width:100%}
+.world-name .hero-identity{position:relative;left:auto;top:auto;width:100%;font:600 152px/1 var(--display);letter-spacing:0;isolation:isolate;perspective:1100px;pointer-events:auto}
+.world-name .identity-row-1{font-size:.245em;margin-top:.33em}
+.world-name .identity-replay{position:relative;left:auto;top:auto;margin-top:35px;font-size:12px;min-height:46px;gap:24px;pointer-events:auto}
+.world-name .identity-replay span{font-size:24px}
+.world-name .identity-composition .hero-description{position:relative;left:auto;top:auto;margin-top:22px;font:400 20px/1.6 var(--body);max-width:36ch}
+.world-caption{text-align:left;inset:auto;width:720px;height:360px;display:block;align-items:normal;justify-content:normal;font:500 74px/1.08 var(--display);letter-spacing:-.055em}
+.world-caption>span{display:block}.world-caption em{display:block;font:italic 400 94px/1.08 var(--serif);letter-spacing:-.035em;color:#d4ff35;margin-top:6px}
+.world-caption small{display:block;font:400 24px/1.65 var(--body);letter-spacing:0;color:#b5c8ee;margin-top:36px;max-width:34ch}
+.spatial-fallback .passage-caption{align-items:flex-start;text-align:left;left:var(--gutter);right:auto;max-width:44vw;font-size:clamp(28px,4vw,64px)}
+@media(max-width:759px){.spatial-copy-ready .hero-top{display:none}.world-name .identity-replay{font-size:22px;min-height:116px;margin-top:12px}.world-name .identity-replay span{font-size:32px}.world-name .identity-composition .hero-description{font-size:30px;line-height:1.55;margin-top:12px}.world-name>.hero-small{font-size:28px;margin-bottom:16px}.world-caption small{font-size:25px}}
