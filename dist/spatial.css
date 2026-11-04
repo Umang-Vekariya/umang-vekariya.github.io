@@ -43,6 +43,7 @@ body{background:#030511;color:#edf2ff}.spatial-world{position:fixed;inset:0;z-in
 @media(min-width:761px) and (max-width:1100px){.hero-type .hero-identity{font-size:min(13vw,22vh)}}
 @media(max-width:760px){.hero-sequence{height:185svh}.hero-small{display:block;top:19%;font-size:8px}.identity-composition{top:23%;width:calc(100% - 48px)}.hero-type .hero-identity{font-size:22vw}.identity-row-1{font-size:.78em}.hero-identity:before{top:calc(100% + 8px);height:2px;width:30px;box-shadow:38px 0 0 #174aff}.identity-replay{margin-top:25px;font-size:8px;gap:14px}.identity-composition .hero-description{margin-top:12px;max-width:28ch;font-size:12px}.spatial-arrival{height:210svh}}
 @media(max-width:760px) and (max-height:700px){.hero-small{top:20%}.identity-composition{top:24%}.hero-type .hero-identity{font-size:21vw}.identity-replay{margin-top:22px}.identity-composition .hero-description{font-size:11px}}
+@media(min-width:761px) and (max-height:800px){.identity-composition{top:28%}.hero-type .hero-identity{font-size:min(12.2vw,19vh)}.identity-replay{margin-top:22px}.identity-composition .hero-description{margin-top:14px}}
 .motion-off .hero-sequence{height:100svh}
 @media(prefers-reduced-motion:reduce){.hero-sequence{height:100svh}.identity-glyph{transform:none!important}.hero-identity:after{display:none}.identity-replay{display:none}}
 
