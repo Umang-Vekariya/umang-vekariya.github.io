@@ -1,3 +1,5 @@
+> Superseded by [the contour surface](contour-surface.md). The ribbon geometry and controller have been removed.
+
 # Sculptural ribbon field
 
 The previous cursor-following light footprint has been removed. The background now contains eighteen solid, twisted cobalt bands with a few narrow lime inlays. The geometry stays visible at rest. Cursor proximity displaces actual ribbon vertices laterally and into depth; leaving, pausing or entering a real tool releases the field back into its original form.
