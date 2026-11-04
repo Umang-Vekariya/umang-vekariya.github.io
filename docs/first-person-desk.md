@@ -6,7 +6,7 @@ The end of Neural Studio now reveals a seated first-person workstation. The came
 
 Two matching, slightly inward-facing 16:10 monitors occupy the main view. The original Neural Studio is fitted proportionally inside the left display. The right display gradually reveals the original contact document: “Let’s build what’s next,” email, copy button, GitHub, LinkedIn and résumé. Its DOM nodes and event handlers are moved and restored, not cloned or rasterized.
 
-The procedural scene includes bevelled individual keycaps and legends, a sculpted wired mouse, finger joints/palms/sleeves, desk mat and edge lighting, monitor stands, speakers, a PC tower with three cobalt fan rings, acoustic panels and dark room surfaces. Cobalt lighting and small lime details retain the existing identity. Opaque geometry is batched by material and keycaps are instanced. The headless geometry inventory has 18 mesh submissions; the browser adds a transparent keyboard legend plane. This is an inventory, not a measured frame-rate result. There is no added animation loop or continuously spinning hardware.
+The procedural scene includes bevelled individual keycaps and legends, a sculpted wireless mouse, continuous left/right hand surfaces and fitted cloth sleeves, desk mat and edge lighting, monitor stands, speakers, a PC tower with three cobalt fan rings, acoustic panels and dark room surfaces. Cobalt lighting and small lime details retain the existing identity. Opaque geometry is batched by material and keycaps are instanced. The geometry regression limits mesh submissions and vertex count; the browser adds a transparent keyboard legend plane. This is an inventory, not a measured frame-rate result. There is no added animation loop or continuously spinning hardware.
 
 ## Camera and native screens
 
@@ -28,3 +28,11 @@ Scene geometry/materials use the existing world cleanup; the keyboard legend tex
 No FPS, Core Web Vitals, photorealism or physical-device certification is claimed. Existing project-gallery performance fixes remain intact.
 
 Recovery branch: `backup/before-first-person-desk-2026-11-04` at `55cda9ea9ec55fbea03b327095c19b4994144822`.
+
+## Hand anatomy and identity repair
+
+Recovery baseline: `backup/before-hand-anatomy-2026-11-05` at `a75a5921efef34cc34a65b6707e0e845275cb2a8`. The left thumb faces the spacebar and the right thumb curls around the mouse. Original hand volumes are sculpted offline and exported as indexed quantized meshes, with curved nails, subtle skin texture and continuous sleeves. No runtime sculpting or extra animation loop is introduced. The generated assets increase the spatial bundle size; no speed improvement is claimed. The mouse cable is removed while monitor and keyboard wiring remain.
+
+Regression checks validate opposite thumb placement against the actual mesh, five distinct nails, unit normals and closed manifold skin surfaces. The shared UV SVG removes the fine cut at its join and the header uses the same external artwork as the footer, with explicit non-shrinking image dimensions. The favicon carries the same silhouette.
+
+This repair passed all 49 automated tests and the site syntax/reference check. Browser review confirmed opposite hands, sleeve joins, wireless mouse and readable shared UV mark on a desktop view and a 390×844 embedded phone frame. Screenshots and the temporary review page are archived outside `dist` at `../backups/hand-anatomy-2026-11-05/qa/`. The desktop console contained no errors.

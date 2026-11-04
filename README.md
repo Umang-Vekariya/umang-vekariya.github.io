@@ -49,7 +49,7 @@ The old rooms and corridor have been retired; this is one shared open space. The
 
 The pre-redesign baseline is also archived outside this checkout at `../backups/before-art-of-engineering-2026-11-03/github-pages.tar.gz`, with its SHA in `commit.txt`. The original private Sites checkout remains separate.
 
-See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The 48 regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.
+See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The 49 regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.
 
 The real Neural Studio pulls back onto the left monitor of a first-person gaming desk, with the original contact document appearing on the right. Its original DOM, canvas and worker remain in place. See [first-person-desk.md](docs/first-person-desk.md) for the close seated framing, procedural room, responsive head turn and reversible screen handoff.
 
@@ -68,3 +68,5 @@ The narrative typography repair uses matching self-hosted Manrope and Instrument
 The background now uses a quiet organic topographic surface inspired by the visual principles of Lando Norris’s site. Its contour lines follow a displaced 3D membrane, with GPU wave propagation and cursor-induced deformation. The rejected ribbon wall has been removed. The existing renderer owns its simulation passes, motion preferences and cleanup. See [contour-surface.md](docs/contour-surface.md).
 
 The gallery now updates only changed lettering, draws static demos on demand, streams the active canvas without a duplicate per-frame copy, freezes each departing exhibit’s pixels, and caches stationary shadows. See [gallery-performance.md](docs/gallery-performance.md) for the measured causes, regressions and verification limits.
+
+The desk hands are separate left/right continuous sculpts with curved nails, matte skin detail and fitted cloth sleeves. The mouse is wireless. Regenerate their compact meshes with `npm run build:hands` when editing `scripts/sculpt-hands.mjs`, then run the normal build. The header/footer share the same uncut UV artwork and the favicon uses the same silhouette.

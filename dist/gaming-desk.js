@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {roundedSolid,createDisplayHousing} from './spatial-craft.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {createAnatomicalHand,createHandMaterials,createSleeve} from './anatomical-hands.js';
 
 export const DESK={left:-4.7,right:4.7,screenY:10.9,z:90,width:8.8,height:5.5,top:6.45,mouse:[4.45,6.88,95.25]};
 
@@ -12,15 +13,13 @@ export function createGamingDesk(){
  const graphite=new THREE.MeshPhysicalMaterial({color:0x090e19,roughness:.46,metalness:.35,clearcoat:.18});
  const anodized=new THREE.MeshStandardMaterial({color:0x1b263c,roughness:.3,metalness:.82});
  const fabric=new THREE.MeshStandardMaterial({color:0x08101b,roughness:.94,metalness:0});
- const skin=new THREE.MeshPhysicalMaterial({color:0xa87855,roughness:.67,metalness:0,specularIntensity:.3,clearcoat:0});
- const nail=new THREE.MeshStandardMaterial({color:0xb58c78,roughness:.4});
+ const handMaterials=createHandMaterials();
  const blue=new THREE.MeshBasicMaterial({color:0x1d4dff,toneMapped:false}),lime=new THREE.MeshBasicMaterial({color:0xd4ff35,toneMapped:false});
  const black=new THREE.MeshStandardMaterial({color:0x02050b,roughness:.8}),pad=new THREE.MeshStandardMaterial({color:0x070f20,roughness:1});
  const add=(geometry,material,position,parent=group)=>{const mesh=new THREE.Mesh(geometry,material);mesh.position.set(...position);parent.add(mesh);return mesh;};
  const box=(w,h,d,material,x,y,z,parent=group,r=.08)=>add(roundedSolid(w,h,d,r),material,[x,y,z],parent);
  const tube=(points,r,material,parent=group)=>add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p))),48,r,8,false),material,[0,0,0],parent);
- const ellipsoid=(size,position,material=skin,parent=group)=>{const m=add(new THREE.SphereGeometry(1,24,16),material,position,parent);m.scale.set(...size);return m;};
- const segment=(a,b,r1,r2,material,parent=group)=>{const start=new THREE.Vector3(...a),end=new THREE.Vector3(...b),m=add(new THREE.CylinderGeometry(r2,r1,start.distanceTo(end),20,1,true),material,start.clone().add(end).multiplyScalar(.5).toArray(),parent);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),end.sub(start).normalize());return m;};
+ const ellipsoid=(size,position,material=graphite,parent=group)=>{const m=add(new THREE.SphereGeometry(1,24,16),material,position,parent);m.scale.set(...size);return m;};
  // Satin desk, recessed edge light, large stitched desk mat and cable raceway.
  box(23,.38,12.2,graphite,0,6.2,4.1);box(22.6,.035,.035,blue,0,6.18,10.21);
  for(const x of [-9.8,9.8]){box(.35,6,.6,anodized,x,3,6);box(2,.2,5,graphite,x,.2,6);}
@@ -46,25 +45,17 @@ export function createGamingDesk(){
   const texture=new THREE.CanvasTexture(canvas);textures.push(texture);texture.colorSpace=THREE.SRGBColorSpace;const legends=add(new THREE.PlaneGeometry(6.4,2.65),new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,toneMapped:false}),[0,.321,0],keyboard);legends.rotation.x=-Math.PI/2;
  }
  tube([[-1.6,6.6,3.8],[-2.4,6.55,2.4],[-3,6.5,.4],[-3,6.2,-.6]],.033,black);
- // Sculpted mouse, split buttons, wheel and a braided lead.
- const mouse=new THREE.Group();mouse.name='mouse-under-right-hand';mouse.position.set(DESK.mouse[0],DESK.mouse[1],DESK.mouse[2]-DESK.z);group.add(mouse);
+ // Wireless mouse with split buttons and a tactile scroll wheel.
+ const mouse=new THREE.Group();mouse.name='wireless-mouse';mouse.userData.wireless=true;mouse.position.set(DESK.mouse[0],DESK.mouse[1],DESK.mouse[2]-DESK.z);group.add(mouse);
  ellipsoid([.53,.22,.88],[0,0,0],graphite,mouse);ellipsoid([.49,.06,.85],[0,-.15,0],blue,mouse);
  for(const x of [-.24,.24]){const button=ellipsoid([.235,.055,.43],[x,.15,-.35],graphite,mouse);button.rotation.x=-.13;}
  const wheel=add(new THREE.CylinderGeometry(.10,.10,.13,24),anodized,[0,.21,-.4],mouse);wheel.rotation.z=Math.PI/2;
  for(let i=0;i<10;i++){const a=i*Math.PI/5;box(.14,.018,.018,black,0,.21+Math.sin(a)*.102,-.4+Math.cos(a)*.102,mouse,.008);}
- tube([[4.45,6.75,4.38],[4.65,6.55,3.3],[5.9,6.5,2],[6.8,6.45,.2]],.027,black);
- // First-person arms: sleeves enter from below frame; fingers curl onto the mouse.
- function hand(position,right){
-  const hand=new THREE.Group();hand.name=right?'right-hand-gripping-mouse':'left-hand-on-keyboard';hand.position.set(...position);group.add(hand);
-  const palmGeometry=new THREE.SphereGeometry(1,32,24),positions=palmGeometry.attributes.position;for(let i=0;i<positions.count;i++){const x=positions.getX(i),y=positions.getY(i),z=positions.getZ(i),width=.43*(.91-.16*z);positions.setXYZ(i,x*width-(x<0?.14*Math.exp(-z*z*5):0),y*.22,z*.62);}palmGeometry.computeVertexNormals();add(palmGeometry,skin,[0,0,0],hand);ellipsoid([.30,.22,.38],[0,-.015,.50],skin,hand);
-  const fingers=right?[[-.26,-.7,-1.06],[-.01,-.76,-1.1],[.22,-.63,-.97],[.4,-.48,-.77]]:[[-.28,-.7,-1.02],[-.02,-.79,-1.16],[.23,-.7,-1.06],[.42,-.48,-.79]];
-  fingers.forEach(([x,bend,end],i)=>{const a=[x,.08,-.34],b=[x,.12,bend],c=[x,-.09,end];segment(a,b,.105-i*.008,.10-i*.008,skin,hand);ellipsoid([.11-i*.008,.105,.12],b,skin,hand);segment(b,c,.10-i*.008,.085-i*.007,skin,hand);ellipsoid([.098-i*.007,.095,.12],c,skin,hand);const n=ellipsoid([.062,.015,.095],[x,-.025,end+.05],nail,hand);n.rotation.x=-.45;});
-  segment([-.32,-.03,.12],[-.59,-.09,-.13],.15,.13,skin,hand);segment([-.59,-.09,-.13],[-.56,-.18,-.42],.13,.105,skin,hand);ellipsoid([.105,.09,.13],[-.56,-.18,-.42],skin,hand);
-  return hand;
- }
- const rightHand=hand([4.48,7.13,5.9],true);rightHand.rotation.y=-.04;
- const leftHand=hand([-2.6,7.14,5.9],false);leftHand.rotation.y=-.18;
- for(const [a,b] of [[[4.5,7.1,6.35],[4.8,6.45,10.8]],[[-2.7,7.1,6.35],[-4.6,6.45,10.8]]]){segment(a,b,.28,.48,fabric);const mid=new THREE.Vector3(...a).lerp(new THREE.Vector3(...b),.17).toArray();segment(a,mid,.27,.32,skin);segment(mid,new THREE.Vector3(...a).lerp(new THREE.Vector3(...b),.25).toArray(),.34,.35,graphite);}
+ // Opposite-handed continuous anatomical meshes, posed independently.
+ const rightHand=createAnatomicalHand('right',handMaterials);rightHand.position.set(4.47,7.24,5.98);rightHand.rotation.y=-.025;group.add(rightHand);
+ const leftHand=createAnatomicalHand('left',handMaterials);leftHand.position.set(-3.05,7.15,5.85);leftHand.rotation.y=.10;group.add(leftHand);
+ group.updateMatrixWorld(true);const rootInverse=group.matrixWorld.clone().invert();
+ for(const [hand,elbow] of [[rightHand,[4.85,6.45,10.8]],[leftHand,[-4.55,6.45,10.8]]]){const wrist=new THREE.Vector3(0,-.045,1.13).applyMatrix4(hand.matrixWorld).applyMatrix4(rootInverse);group.add(createSleeve(elbow,wrist.toArray(),handMaterials));}
  // Quiet studio speakers and an exposed tempered-glass PC with three cobalt fans.
  for(const x of [-10.25,10.25]){box(1.25,2.4,1.35,graphite,x,7.72,-.15);for(const [y,r] of [[7.55,.38],[8.32,.16]]){const cone=add(new THREE.ConeGeometry(r,.11,32),black,[x,y,.55]);cone.rotation.x=Math.PI/2;const ring=add(new THREE.TorusGeometry(r,.022,6,40),anodized,[x,y,.62]);}box(.08,.025,.025,lime,x,6.69,.57);}
  const tower=new THREE.Group();tower.name='gaming-pc';tower.position.set(11.6,6.45,1.1);tower.rotation.y=-.15;group.add(tower);
@@ -85,5 +76,5 @@ export function createGamingDesk(){
   sources.forEach(mesh=>{mesh.removeFromParent();mesh.geometry.dispose();});
  }
  for(const assembly of [keyboard,mouse,rightHand,leftHand])batch(assembly);batch(group);
- return {group,leftScreen:monitors[0].screen,rightScreen:monitors[1].screen,keyboard,mouse,rightHand,dispose(){textures.forEach(texture=>texture.dispose());}};
+ return {group,leftScreen:monitors[0].screen,rightScreen:monitors[1].screen,keyboard,mouse,rightHand,leftHand,dispose(){textures.forEach(texture=>texture.dispose());handMaterials.dispose();}};
 }
