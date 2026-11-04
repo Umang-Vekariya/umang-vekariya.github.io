@@ -34,7 +34,7 @@ export function createDemoEngine(){
   rect(40,155,310,510);text('Survey points',65,199,27);text('x / y / signal',65,232,18,C.muted,true);
   s.samples.slice(-7).forEach((p,i)=>{const y=280+i*48;dot(78,y-7,5);text(`${p.x.toFixed(2)}  ${p.y.toFixed(2)}`,98,y,19,C.ink,true);text(`${p.rssi} dBm`,247,y,17,C.red,true);});
   const x=390,y=155,w=770,h=510;rect(x,y,w,h,'#111719');
-  if(phase>.35){ctx.save();ctx.globalAlpha=clamp((phase-.35)*1.8);for(let iy=0;iy<26;iy++)for(let ix=0;ix<40;ix++){const v=interpolateRSSI(s.samples,ix/39,iy/25),n=clamp((v+85)/45);ctx.fillStyle=`rgb(${Math.round(45+n*170)},${Math.round(45+n*50)},${Math.round(50-n*15)})`;ctx.fillRect(x+ix*w/40,y+iy*h/26,w/40+1,h/26+1);}ctx.restore();}
+  if(phase>.35){ctx.save();ctx.globalAlpha=clamp((phase-.35)*1.8);for(let iy=0;iy<26;iy++)for(let ix=0;ix<40;ix++){const v=interpolateRSSI(s.samples,ix/39,iy/25),n=clamp((v+85)/45);ctx.fillStyle=`rgb(${Math.round(23+n*189)},${Math.round(74+n*181)},${Math.round(255-n*202)})`;ctx.fillRect(x+ix*w/40,y+iy*h/26,w/40+1,h/26+1);}ctx.restore();}
   for(let i=1;i<6;i++){line(x+w*i/6,y,x+w*i/6,y+h,'#b2b7b71a',1);line(x,y+h*i/6,x+w,y+h*i/6,'#b2b7b71a',1);}
   ctx.strokeStyle='#eee8d8a0';ctx.lineWidth=4;ctx.strokeRect(x+30,y+30,w-60,h-60);line(x+w*.4,y+30,x+w*.4,y+h*.55,'#eee8d8a0',4);line(x+w*.4,y+h*.55,x+w-30,y+h*.55,'#eee8d8a0',4);
   s.samples.forEach((p,i)=>{dot(x+p.x*w,y+p.y*h,9,C.ink);text(i+1,x+p.x*w+15,y+p.y*h-12,20,C.ink,true);});
@@ -50,7 +50,7 @@ export function createDemoEngine(){
   const s=states['vit-vault'];base('VIT Vault',s.outbox.online?'GATEWAY ONLINE / LOCAL SIMULATION':'INTERNET OFFLINE / LOCAL SIMULATION');
   const boxes=[['STUDENT',50],['LAN GATEWAY',440],['CLOUD VERIFY',830]];
   boxes.forEach(([name,x],i)=>{rect(x,180,320,140);text(name,x+26,225,24,C.ink,true);text(i===0?'sample submission':i===1?'receipt + outbox':s.outbox.online?'connected':'unavailable',x+26,280,20,i===2&&!s.outbox.online?C.red:C.muted,true);});
-  line(370,250,430,250,C.red,3);line(760,250,820,250,s.outbox.online?C.green:'#684233',3);
+  line(370,250,430,250,C.red,3);line(760,250,820,250,s.outbox.online?C.green:'#2446a2',3);
   if(s.outbox.items.length){const x=370+((time*.2)%1)*420;dot(x,250,7,s.outbox.online?C.green:C.red);}
   text('RECEIPT',60,383,18,C.muted,true);text('SHA-256 CONTENT DIGEST',280,383,18,C.muted,true);text('STATE',930,383,18,C.muted,true);
   s.outbox.items.slice(-4).forEach((v,i)=>{const y=430+i*55;line(50,y+18,1150,y+18);text(`#${String(v.id).padStart(3,'0')}`,60,y,24,C.ink,true);text(v.hash.slice(0,30)+'…',280,y,19,C.muted,true);text(v.state.toUpperCase(),930,y,20,v.state==='verified'?C.green:C.red,true);});
@@ -70,7 +70,7 @@ export function createDemoEngine(){
   const s=states.realityforge;base('RealityForge','SYNTHETIC DESK / INTERACTIVE COLLISION SKETCH');
   const x=55,y=160,w=1090,h=510;rect(x,y,w,h,'#132024');for(let i=0;i<=10;i++){line(x+i*w/10,y,x+i*w/10,y+h,'#52666d33',1);line(x,y+i*h/10,x+w,y+i*h/10,'#52666d33',1);}
   [[x+20,y+20],[x+w-20,y+20],[x+20,y+h-20],[x+w-20,y+h-20]].forEach(([a,b],i)=>{dot(a,b,6,C.ink);text(i+1,a+12,b+8,18,C.ink,true);});
-  if(phase>.3){ctx.fillStyle='#e3694840';ctx.beginPath();ctx.ellipse(x+s.x*w,y+s.y*h,100,75,-.2,0,Math.PI*2);ctx.fill();ctx.strokeStyle=C.red;ctx.lineWidth=3;ctx.stroke();text('SYNTHETIC OBSTACLE',x+s.x*w-115,y+s.y*h-100,18,C.red,true);}
+  if(phase>.3){ctx.fillStyle='#174aff40';ctx.beginPath();ctx.ellipse(x+s.x*w,y+s.y*h,100,75,-.2,0,Math.PI*2);ctx.fill();ctx.strokeStyle=C.red;ctx.lineWidth=3;ctx.stroke();text('SYNTHETIC OBSTACLE',x+s.x*w-115,y+s.y*h-100,18,C.red,true);}
   if(phase>.9){for(let i=0;i<45;i++){const px=(i*.137+time*.04)%1,py=.15+(i%8)*.1,dx=px-s.x,dy=py-s.y,d=Math.hypot(dx,dy);dot(x+(px+(d<.18?Math.sign(dx)*(.18-d):0))*w,y+py*h,3,'#99c2bd');}
    const b=s.ball;if(motion){b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.x<.03||b.x>.97)b.vx*=-1;if(b.y<.04||b.y>.96)b.vy*=-1;const dx=b.x-s.x,dy=b.y-s.y;if(Math.hypot(dx,dy)<.14){const angle=Math.atan2(dy,dx);b.vx=Math.cos(angle)*.18;b.vy=Math.sin(angle)*.18;b.x=s.x+Math.cos(angle)*.145;b.y=s.y+Math.sin(angle)*.145;}}dot(x+b.x*w,y+b.y*h,10,C.ink);}
  }

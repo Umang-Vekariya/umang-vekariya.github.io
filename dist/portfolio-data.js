@@ -1,6 +1,6 @@
 // Portfolio facts supplied in Umang Vekariya's résumé. No inferred performance claims.
 export const profile={
-  name:'Umang Vekariya',email:'umangvekariya206@gmail.com',linkedin:'https://www.linkedin.com/in/umangvekariya',location:'Mumbai, India',
+  name:'Umang Vekariya',email:'umangvekariya26@gmail.com',linkedin:'https://www.linkedin.com/in/umangvekariya',location:'Mumbai, India',
   role:'Computer Science · Artificial Intelligence & Machine Learning',
   university:'Vellore Institute of Technology, Vellore',degree:'B.Tech',educationDates:'2024 – Present',cgpa:'9.21',
   focus:'Seeking AI Engineer and Software Engineering internship opportunities.',
@@ -78,10 +78,10 @@ export const experiences=[
   {dates:'JUL 2026',title:'Edge AI & Robotics Summer School',organization:'ACM India · IISc Bengaluru',summary:'Selected for hands-on learning in edge AI, robotics, computer vision, and autonomous systems.',text:'Selected participant in the ACM India Summer School at IISc. Explored edge AI, embedded machine learning, robotics, computer vision, and autonomous systems through expert-led sessions and hands-on activities.'}
 ];
 export const skills=[
-  {name:'Languages',items:['Python','C++','Java','C','JavaScript','TypeScript']},
-  {name:'AI & computer vision',items:['TensorFlow','OpenCV','MediaPipe','scikit-learn','NumPy','SciPy']},
-  {name:'Web & APIs',items:['React','Tailwind CSS','FastAPI','Node.js','Express.js','HTML / CSS']},
-  {name:'Data & infrastructure',items:['PostgreSQL','MySQL','MongoDB','SQLite','Azure','AWS S3','Docker','Git']}
+  {name:'Languages',items:['Python','C++','Java','SQL','JavaScript','TypeScript']},
+  {name:'AI & computer vision',items:['scikit-learn','TensorFlow','Ollama','OpenCV','MediaPipe','NumPy','SciPy']},
+  {name:'Web & APIs',items:['React','FastAPI','REST APIs','SQLAlchemy']},
+  {name:'Data & infrastructure',items:['PostgreSQL','MySQL','SQLite','Azure VMs','Blob Storage','Queue Storage','Docker','Git']}
 ];
 export const certificates=[
   'Meta Front-End Developer Professional','Meta Advanced React','Meta Programming with JavaScript','Meta Introduction to Front-End Development','Meta React Basics','Meta HTML and CSS in Depth','Meta Coding Interview Preparation','Infosys Understanding Social Styles','Oracle Cloud Infrastructure AI Foundations','Infosys Basics of Python','Meta Version Control','Infosys Communicating to Succeed','Introduction to Generative AI Studio','Infosys Java Programming Fundamentals','Meta Principles of UX/UI Design','Meta Front-End Developer Capstone'

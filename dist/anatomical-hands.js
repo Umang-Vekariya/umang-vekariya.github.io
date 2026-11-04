@@ -21,19 +21,13 @@ export function createHandMaterials(){
  for(let i=0;i<size*size;i++){seed=(1664525*seed+1013904223)>>>0;const value=218+(seed>>>27);data.set([value,value,value,255],i*4);}
  const pores=new THREE.DataTexture(data,size,size,THREE.RGBAFormat);pores.wrapS=pores.wrapT=THREE.RepeatWrapping;pores.repeat.set(5,8);pores.magFilter=THREE.LinearFilter;pores.minFilter=THREE.LinearMipmapLinearFilter;pores.generateMipmaps=true;pores.needsUpdate=true;
  const skin=new THREE.MeshPhysicalMaterial({color:0xb4876c,roughness:.77,metalness:0,specularIntensity:.2,vertexColors:true,roughnessMap:pores,bumpMap:pores,bumpScale:.002});
- const nail=new THREE.MeshPhysicalMaterial({color:0xb99985,roughness:.48,metalness:0,specularIntensity:.25});
  const sleeve=new THREE.MeshStandardMaterial({color:0x09111c,roughness:.98,metalness:0}),cuff=new THREE.MeshStandardMaterial({color:0x070c14,roughness:1,metalness:0});
- return {skin,nail,sleeve,cuff,dispose(){pores.dispose();}};
-}
-function nailGeometry(width,length){
- const shape=new THREE.Shape(),x=-width/2,z=-length/2,r=width*.32;
- shape.moveTo(x+r,z);shape.lineTo(x+width-r,z);shape.quadraticCurveTo(x+width,z,x+width,z+r);shape.lineTo(x+width,z+length-r);shape.quadraticCurveTo(x+width,z+length,x+width-r,z+length);shape.lineTo(x+r,z+length);shape.quadraticCurveTo(x,z+length,x,z+length-r);shape.lineTo(x,z+r);shape.quadraticCurveTo(x,z,x+r,z);
- const geometry=new THREE.ExtrudeGeometry(shape,{depth:.007,bevelEnabled:true,bevelSize:.002,bevelThickness:.002,bevelSegments:2,curveSegments:8});geometry.rotateX(-Math.PI/2);const p=geometry.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,p.getY(i)+.009*(1-Math.pow(p.getX(i)/(width*.6),2)));geometry.computeVertexNormals();return geometry;
+ return {skin,sleeve,cuff,dispose(){pores.dispose();}};
 }
 export function createAnatomicalHand(side,materials){
  const model=sculptedHands[side],group=new THREE.Group();group.name=side==='right'?'right-hand-gripping-mouse':'left-hand-on-keyboard';group.userData.handedness=side;group.userData.landmarks=model.landmarks;
  const surface=new THREE.Mesh(handGeometry(side),materials.skin);surface.name='continuous-hand-surface';surface.userData.deskBatch=true;group.add(surface);
- for(const plate of model.nails){const y=new THREE.Vector3(...plate.normal),z=new THREE.Vector3(...plate.tangent).negate(),x=new THREE.Vector3().crossVectors(y,z).normalize();z.crossVectors(x,y).normalize();const mesh=new THREE.Mesh(nailGeometry(plate.width,plate.length),materials.nail);mesh.name=plate.digit+'-nail';mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z));mesh.position.set(...plate.center);group.add(mesh);}
+
  return group;
 }
 export function createSleeve(elbow,wrist,materials){

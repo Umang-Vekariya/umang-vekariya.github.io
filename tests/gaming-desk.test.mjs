@@ -16,9 +16,10 @@ test('the seated workstation has two physical displays, a mechanical keyboard, a
 });
 
 test('sculpted left and right hands have opposite thumbs and closed continuous skin surfaces',async()=>{
- const {handGeometry}=await import('../dist/anatomical-hands.js');
+ const {handGeometry,createAnatomicalHand,createHandMaterials}=await import('../dist/anatomical-hands.js');
  const {sculptedHands}=await import('../dist/assets/hands/sculpted-hands.js');
  for(const side of ['left','right']){
+  const materials=createHandMaterials(),hand=createAnatomicalHand(side,materials);assert.equal(hand.children.length,1,'separate nail plates are still rendered');hand.children[0].geometry.dispose();materials.dispose();for(const key of ['skin','sleeve','cuff'])materials[key].dispose();
   const model=sculptedHands[side],g=handGeometry(side),p=g.attributes.position,n=g.attributes.normal,edges=new Map();
   assert.equal(model.nails.length,5);assert.equal(new Set(model.nails.map(n=>n.digit)).size,5);
   const thumb=new THREE.Vector3(...model.landmarks.thumb);

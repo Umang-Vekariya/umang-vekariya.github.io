@@ -41,7 +41,7 @@ export function createGamingDesk(){
  keys.forEach((key,i)=>{matrix.makeScale(key.w,1,1).setPosition(key.x,.25,key.z);keyMesh.setMatrixAt(i,matrix);keyMesh.setColorAt(i,new THREE.Color(key.color));});keyboard.add(keyMesh);
  if(typeof document!=='undefined'){
   const canvas=document.createElement('canvas');canvas.width=1536;canvas.height=640;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,1536,640);ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='500 24px sans-serif';
-  for(const k of keys){ctx.fillStyle=k.label==='Esc'||k.label==='Enter'?'#151d12':'#b1bdd5';ctx.fillText(k.label==='SPACE'?'U V':k.label,(k.x/6.4+.5)*1536,(k.z/2.65+.5)*640);}
+  for(const k of keys){if(k.label==='SPACE')continue;ctx.fillStyle=k.label==='Esc'||k.label==='Enter'?'#151d12':'#b1bdd5';ctx.fillText(k.label,(k.x/6.4+.5)*1536,(k.z/2.65+.5)*640);}
   const texture=new THREE.CanvasTexture(canvas);textures.push(texture);texture.colorSpace=THREE.SRGBColorSpace;const legends=add(new THREE.PlaneGeometry(6.4,2.65),new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,toneMapped:false}),[0,.321,0],keyboard);legends.rotation.x=-Math.PI/2;
  }
  tube([[-1.6,6.6,3.8],[-2.4,6.55,2.4],[-3,6.5,.4],[-3,6.2,-.6]],.033,black);

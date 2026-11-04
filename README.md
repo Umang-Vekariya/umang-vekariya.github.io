@@ -69,4 +69,6 @@ The background now uses a quiet organic topographic surface inspired by the visu
 
 The gallery now updates only changed lettering, draws static demos on demand, streams the active canvas without a duplicate per-frame copy, freezes each departing exhibit’s pixels, and caches stationary shadows. See [gallery-performance.md](docs/gallery-performance.md) for the measured causes, regressions and verification limits.
 
-The desk hands are separate left/right continuous sculpts with curved nails, matte skin detail and fitted cloth sleeves. The mouse is wireless. Regenerate their compact meshes with `npm run build:hands` when editing `scripts/sculpt-hands.mjs`, then run the normal build. The header/footer share the same uncut UV artwork and the favicon uses the same silhouette.
+The desk hands are separate left/right continuous sculpts with smooth fingertips, matte skin detail and fitted cloth sleeves. The mouse is wireless. Regenerate their compact meshes with `npm run build:hands` when editing `scripts/sculpt-hands.mjs`, then run the normal build. The header/footer share the same uncut UV artwork and the favicon uses the same silhouette.
+
+The latest résumé, matching toolkit/contact information, cobalt/lime document-page palette and startup handoff repair are documented in [resume-theme-update.md](docs/resume-theme-update.md). The left thumb now rests near V/F; the spacebar is unbranded and the hands have no nail plates.

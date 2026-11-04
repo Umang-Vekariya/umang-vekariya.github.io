@@ -154,3 +154,6 @@ html[data-desk-screen=true] #contact>.desk-contact-window .contact-title{opacity
  #contact .desk-contact-content .contact-links{gap:32px;margin:0}
  #contact .desk-contact-content .contact-links a{font-size:30px!important;min-height:80px;display:inline-flex;align-items:center}
 }
+
+/* The legacy DOM opening is a fallback, never a prelude to the WebGL identity. */
+html:not(.spatial-copy-ready):not(.spatial-fallback) .hero-type,html:not(.spatial-copy-ready):not(.spatial-fallback) .hero-top,html:not(.spatial-copy-ready):not(.spatial-fallback) .hero-bottom,html:not(.spatial-copy-ready):not(.spatial-fallback) .passage-caption{visibility:hidden}

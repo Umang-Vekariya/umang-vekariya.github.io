@@ -24,7 +24,7 @@ function pose(side){
   {name:'ring',points:[[.22,.02,-.30],[.245,.045,-.69],[.255,-.035,-.94],[.255,-.13,-1.045]],r:.102},
   {name:'little',points:[[.405,-.005,-.20],[.46,.015,-.48],[.51,-.08,-.70],[.53,-.155,-.79]],r:.084}
  ];
- const thumb={name:'thumb',points:right?[[-.245,-.055,.24],[-.49,-.11,.04],[-.61,-.20,-.27],[-.59,-.27,-.48]]:[[-.245,-.055,.24],[-.49,-.12,.15],[-.65,-.18,.26],[-.73,-.215,.43]],r:.15};
+ const thumb={name:'thumb',points:right?[[-.245,-.055,.24],[-.49,-.11,.04],[-.61,-.20,-.27],[-.59,-.27,-.48]]:[[-.245,-.055,.24],[-.49,-.12,.08],[-.70,-.18,-.10],[-.84,-.215,-.32]],r:.15};
  const bones=[],nails=[],landmarks={palm:[0,0,0],wrist:[0,-.035,1.25],thumb:null,index:null,little:null};
  for(const digit of [...fingers,thumb]){
   const curve=new THREE.CatmullRomCurve3(digit.points.map(p=>new THREE.Vector3(...p))),points=curve.getPoints(12),radius=t=>digit.r*(1-.38*t)*(1+.025*Math.exp(-Math.pow((t-.4)/.1,2)));

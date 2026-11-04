@@ -3,7 +3,7 @@
   --studio-ink: #eee7db;
   --studio-muted: #b8c5bf;
   --studio-dim: #92a59d;
-  --studio-copper: #e3a184;
+  --studio-copper: #d4ff35;
   --studio-mint: #b9d4c5;
   --studio-line: #c1d2c022;
   background: #0b1113;
@@ -23,7 +23,7 @@
 .studio-brand span {display: block; font: 400 12px/1.5 var(--body); color: var(--studio-dim); letter-spacing: 0; margin-top: 5px}
 #studio-train {display: flex; align-items: center; justify-content: space-between; gap: 28px; min-height: 46px; min-width: 182px; padding: 13px 18px; border: 1px solid transparent; border-radius: 3px; background: #e8dfce; color: #142125; font: 500 13px var(--body)}
 #studio-train > span {font-size: 19px}
-#studio-train:hover {background: #efba9c}
+#studio-train:hover {background: #edf2ff}
 #studio-train[aria-pressed=true] {background: #2b433b; color: #d2e7d9; border-color: #aac6b653}
 #studio-train:disabled {opacity: .5; cursor: default}
 .studio-tabs {display: flex; gap: 34px; border-bottom: 1px solid var(--studio-line); padding: 0 32px}
@@ -84,9 +84,9 @@
 .studio-neuron {display: grid; place-items: center; width: 35px; height: 35px; padding: 3px; border: 1px solid #8aa49b77; background: #101a1e; border-radius: 50%; transition: border-color .2s,box-shadow .2s}
 .studio-neuron canvas {display: block; width: 27px; height: 27px; border-radius: 50%; pointer-events: none}
 .studio-neuron:hover,.studio-neuron:focus-visible {border-color: var(--studio-ink); box-shadow: 0 0 0 3px #e7dfca13}
-.studio-neuron[aria-pressed=true] {border-color: var(--studio-copper) !important; box-shadow: 0 0 0 3px #e49a7922}
+.studio-neuron[aria-pressed=true] {border-color: var(--studio-copper) !important; box-shadow: 0 0 0 3px #7695ff22}
 .studio-input,.studio-output {display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #142324; border: 1px solid #9ab5ab66; color: var(--studio-mint); font: 12px var(--mono)}
-.studio-output {width: 43px; height: 43px; padding: 0; font-size: 10px; color: #f2c9ab; background: #30251f; border-color: #e49a7977}
+.studio-output {width: 43px; height: 43px; padding: 0; font-size: 10px; color: #c6d5ff; background: #091744; border-color: #7695ff77}
 .studio-pane > .studio-network-hint {font-size: 12px; margin: 25px 0 0; color: var(--studio-dim)}
 .studio-metrics {display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 32px 0 36px}
 .studio-metrics span {display: block; font: 12px/1.6 var(--body); color: var(--studio-dim); margin-bottom: 12px}

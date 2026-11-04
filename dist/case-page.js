@@ -1,4 +1,4 @@
-import {createProjectPreviews} from './project-previews.js?v=2';
+import {createProjectPreviews} from './project-previews.js?v=6';
 
 const preview=document.querySelector('.case-preview');
 const controller=createProjectPreviews();
