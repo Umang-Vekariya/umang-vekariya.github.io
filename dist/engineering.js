@@ -64,6 +64,7 @@ $('#world-display-hit').addEventListener('pointerdown',e=>{screenPointer={x:e.cl
 $('#world-display-hit').addEventListener('pointermove',e=>{if(screenPointer&&e.buttons&&Math.hypot(e.clientX-screenPointer.x,e.clientY-screenPointer.y)>6){galleryLive=true;syncDemo();queueFrame();spatialController?.pointer(e.clientX,e.clientY,screenDragged?'move':'down');screenDragged=true;}else if(engine.projectId==='playable-replay'&&engine.states['playable-replay'].control)spatialController?.pointer(e.clientX,e.clientY,'move');});
 $('#world-display-hit').addEventListener('click',()=>{screenPointer=null;if(!screenDragged)openGalleryProject();screenDragged=false;});
 $('#world-display-hit').addEventListener('pointercancel',()=>{screenPointer=null;screenDragged=false;});
+addEventListener('portfolio-atlas-select',e=>{selectGallery(e.detail.index);history.replaceState(null,'','#gallery');});
 $('#gallery-start').addEventListener('click',()=>selectGallery(0));$('#gallery-select').addEventListener('change',e=>selectGallery(e.target.value));
 $('#gallery-next').addEventListener('click',()=>{if(galleryIndex===7){$('#lab').scrollIntoView({behavior:motion?'smooth':'instant'});return;}selectGallery(galleryIndex+1);});$('#gallery-previous').addEventListener('click',()=>selectGallery(galleryIndex-1));
 document.addEventListener('click',e=>{const b=e.target.closest('[data-gallery-go]');if(b)selectGallery(b.dataset.galleryGo);if(e.target.closest('#gallery-index'))$('#collection').hidden=false;if(e.target.closest('#index-return')){e.preventDefault();selectGallery(galleryIndex);}const step=e.target.closest('[data-gallery-step]');if(step){galleryStep=Number(step.dataset.galleryStep);manualStep=true;galleryLive=true;galleryStepUI();syncDemo();queueFrame();}});
@@ -152,7 +153,7 @@ function ensureWorld(){
  if(worldStarted||document.querySelector('dialog[open]')||['lab','index'].includes(worldState.chapter))return;
  worldStarted=true;formObserver.disconnect();
  if(navigator.connection?.saveData||new URL(location.href).searchParams.get('graphics')==='off'){root.classList.add('spatial-fallback');queueFrame();return;}
- import('./spatial-world.bundle.js?v=21').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
+ import('./spatial-world.bundle.js?v=23').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
 }
 const formObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))ensureWorld();},{rootMargin:'0px'});formObserver.observe($('#home'));worldBootReady=true;ensureWorld();
 $$('dialog').forEach(d=>{d.addEventListener('toggle',()=>{if(d.open)spatialController?.release();syncDemo();});d.addEventListener('close',()=>{preview?.resume();requestAnimationFrame(()=>{ensureWorld();spatialController?.update(worldState);syncDemo();});});});
