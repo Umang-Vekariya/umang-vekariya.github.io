@@ -15,6 +15,17 @@ test('the real studio starts on exactly its native rectangle, including a tall t
  }
 });
 
+test('the phone studio clears the contact lettering with a continuous reversible upward exit',()=>{
+ const screen={viewportWidth:390,viewportHeight:844,width:342,height:704,left:24,top:108},display=finaleDisplay(screen);let lastBottom=Infinity;
+ for(let i=0;i<=100;i++){
+  const shot=finaleShot(1,screen,i/100),camera=new THREE.PerspectiveCamera(shot.fov,390/844,.1,280);camera.position.set(...shot.position);camera.lookAt(new THREE.Vector3(...shot.target));camera.updateMatrixWorld();
+  const bottom=new THREE.Vector3(...display.center).add(new THREE.Vector3(0,-display.height/2,0)).project(camera).y;
+  assert.ok(Number.isFinite(bottom));const pixels=(.5-bottom*.5)*844;assert.ok(pixels<=lastBottom+.0001,'the monitor moves down across contact text');lastBottom=pixels;
+  assert.deepEqual(shot,finaleShot(1,screen,i/100));
+ }
+ assert.ok(lastBottom<844*.35,'the screen still covers the contact heading');
+});
+
 test('using a studio control cannot collapse the real tool; wheel input resumes the reveal, and motion-off restores it',async()=>{
  const {initStudioFinale}=await import('../dist/studio-finale.js');
  const names=['document','innerWidth','innerHeight','scrollY','ResizeObserver','requestAnimationFrame','cancelAnimationFrame','addEventListener','removeEventListener'],saved=Object.fromEntries(names.map(n=>[n,globalThis[n]])),events=new Map();let track,resizeCallback,consoleHeight=1000;

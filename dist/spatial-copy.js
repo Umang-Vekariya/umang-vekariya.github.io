@@ -4,6 +4,7 @@ import {spatialShot} from './spatial-layout.js';
 import {smooth,atlasPassagePhase} from './engineering-motion.js';
 
 export const copySizes={name:[720,620],caption:[720,360]};
+export function copyOpacity(kind,state){return kind==='name'?(state.chapter==='home'?1-smooth(.16,.53,state.progress):0):state.chapter==='home'?smooth(.64,.88,state.progress):state.chapter==='passage'?1-smooth(.03,.24,atlasPassagePhase(state.progress)):0;}
 
 function referenceCamera(shot,width,height){
  const camera=new THREE.PerspectiveCamera(shot.fov,width/height,.1,280);
@@ -53,7 +54,7 @@ export function createSpatialCopy(){
   if(disposed)return;
   for(const kind of ['name','caption']){
    const element=kind==='name'?name:caption,points=projectCopy(anchors[kind],camera,innerWidth,innerHeight);
-   let opacity=kind==='name'?(state.chapter==='home'?1-smooth(.16,.53,state.progress):0):state.chapter==='home'?smooth(.64,.88,state.progress):state.chapter==='passage'?1-smooth(.03,.24,atlasPassagePhase(state.progress)):0;
+   let opacity=copyOpacity(kind,state);
    if(!points)opacity=0;
    const matrix=points&&screenTransform(points,...copySizes[kind]);
    element.style.visibility=matrix&&opacity>.002?'visible':'hidden';element.style.opacity=String(opacity);element.inert=opacity<.1||!matrix;

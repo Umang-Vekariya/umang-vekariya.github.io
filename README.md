@@ -49,13 +49,13 @@ The old rooms and corridor have been retired; this is one shared open space. The
 
 The pre-redesign baseline is also archived outside this checkout at `../backups/before-art-of-engineering-2026-11-03/github-pages.tar.gz`, with its SHA in `commit.txt`. The original private Sites checkout remains separate.
 
-See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The 35 regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.
+See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The 40 regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.
 
 The real Neural Studio pulls back into a separate cobalt closing space as the visitor scrolls beyond the tool. Its original DOM, canvas and worker remain in place; see [studio-finale.md](docs/studio-finale.md) for the reversible camera/HTML handoff, mobile window and verification.
 
 The overview installation is now an interactive atlas of eight actual project folios. Hover a cover to bring it forward and read its label; select one to enter its gallery exhibit. The keyboard-accessible atlas link leads to the full index. Direct overview view: `#atlas`. See [project-atlas.md](docs/project-atlas.md).
 
-The opening identity uses an original cut-metal SVG wordmark with staggered perspective assembly, traced outlines, cobalt depth trails and a damped pointer response. Its optional replay is keyboard accessible; motion-off and reduced motion keep a static readable name. See `docs/kinetic-identity.md`.
+The opening identity uses continuous custom outlines extruded into solid, bevelled 3D letters, with pale metallic faces and cobalt sides. Its staggered depth assembly, local hover lift and optional replay share the main scene renderer. Supporting narrative type uses sculpted headings and readable native HTML on matching 3D planes. See [solid-lettering.md](docs/solid-lettering.md).
 
 The project atlas parts into two groups of four to make a physical camera passage. Scroll reverses the same camera and geometry; explicit opening controls pause at the atlas and continue through it. See `docs/atlas-passage.md`.
 

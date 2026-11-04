@@ -22,5 +22,6 @@ export function spatialShot({chapter='home',progress=0,index=0,phase=0,portrait=
  if(chapter==='arrival'){if(p<.52)return mixShot(education,overview,p/.52);if(p<.62)return overview;return mixShot(overview,stationShot(0,{portrait:galleryPortrait}),(p-.62)/.38);}
  if(chapter==='gallery'){const current=stationShot(index,{portrait:galleryPortrait,phase});if(phase>.58&&index<7){const a=stations[index].angle+smooth(.58,1,phase)*Math.PI/4;return stationShot({angle:a,x:Math.cos(a)*31,z:galleryCenter[2]+Math.sin(a)*27},{portrait:galleryPortrait});}return current;}
  if(chapter==='contact')return {position:[-2,9,-15],target:[4.5,5.2,0],fov:portrait?50:36};
+ if(chapter==='lab')return {position:[-7,8,-122],target:[-36,7,-148],fov:40};
  return overview;
 }

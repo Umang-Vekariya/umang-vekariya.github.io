@@ -9,7 +9,7 @@ export function initIdentity(){
  let targetX=0,targetY=0,x=0,y=0,strength=0,targetStrength=0;
  const cancel=()=>{for(const a of animations)a.cancel();animations=[];title.dataset.animating='false';};
  function enter(){
-  cancel();if(!enabled||disposed||!visible)return;
+  cancel();if(!enabled||disposed||!visible||root.classList.contains('mesh-identity-ready'))return;
   title.dataset.animating='true';
   glyphs.forEach((glyph,i)=>{
    const row=Number(glyph.dataset.row),column=Number(glyph.dataset.column),delay=row*210+column*66;
@@ -48,7 +48,7 @@ export function initIdentity(){
   else if(!inside){glyphs.forEach(g=>{g.style.transform='';g.style.removeProperty('--echo');});title.style.removeProperty('--identity-light');}
  }
  function move(e){
-  if(!enabled||!fine.matches||!visible||e.pointerType==='touch')return;
+  if(!enabled||!fine.matches||!visible||e.pointerType==='touch'||root.classList.contains('mesh-identity-ready'))return;
   rect=title.getBoundingClientRect();inside=true;targetStrength=1;
   targetX=Math.max(-.5,Math.min(.5,(e.clientX-rect.left)/rect.width-.5));
   targetY=Math.max(-.5,Math.min(.5,(e.clientY-rect.top)/rect.height-.5));

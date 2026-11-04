@@ -17,11 +17,11 @@ export function finaleDisplay(screen){
  const ratio=screen.width/Math.max(1,screen.height),width=screen.viewportWidth<760?Math.max(2.6,Math.min(7,13*ratio)):12,height=width/ratio;
  return {width,height,center:[-8,2+height/2,90.005]};
 }
-export function finaleShot(progress,screen){
+export function finaleShot(progress,screen,outro=0){
  const {width,center}=finaleDisplay(screen),fov=38,f=screen.viewportHeight/(2*Math.tan(fov*Math.PI/360)),depth=f*width/screen.width;
  const x=center[0]-(screen.left+screen.width/2-screen.viewportWidth/2)*depth/f,y=center[1]+(screen.top+screen.height/2-screen.viewportHeight/2)*depth/f;
  const close={position:[x,y,center[2]+depth],target:[x,y,center[2]],fov};
- const wide=screen.viewportWidth<760?{position:[6,12,129],target:[-7,5,90],fov:48}:{position:[14,11,125],target:[0,5,90],fov:40};
+ const wide=screen.viewportWidth<760?{position:[6,12,129],target:[-7,5-18*smooth(0,1,outro),90],fov:48}:{position:[14,11,125],target:[0,5,90],fov:40};
  const t=smooth(.08,.91,clamp(progress));if(t===0)return close;if(t===1)return wide;
  // The reveal follows one deterministic, reversible dolly with a gentle arc.
  return {position:close.position.map((v,i)=>v+(wide.position[i]-v)*t+(i===1?Math.sin(t*Math.PI)*1.3:0)),target:close.target.map((v,i)=>v+(wide.target[i]-v)*t),fov:close.fov+(wide.fov-close.fov)*t};

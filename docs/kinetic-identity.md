@@ -1,3 +1,5 @@
+> Superseded by the real extruded identity in [solid-lettering.md](solid-lettering.md). This file records the earlier native animation.
+
 > The original Manrope opening described below has been superseded by the custom cut-metal SVG wordmark in `atlas-passage.md`. The animation lifecycle and accessibility protections remain.
 
 # Kinetic opening identity — 4 November 2026

@@ -1,3 +1,5 @@
+> The name and caption now use solid extruded meshes; supporting HTML retains the projection described below. The current renderer and narrative system are documented in [solid-lettering.md](solid-lettering.md).
+
 # Lettering within the world
 
 The opening identity and “From a question. / To a possibility.” now have fixed planes beside their respective installations. The camera approaches and passes these positions; they do not remain centered over the scene or track the viewport. The duplicate atlas introduction is hidden while this presentation is active.
