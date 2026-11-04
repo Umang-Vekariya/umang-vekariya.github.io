@@ -1,4 +1,3 @@
-import {initVoidField} from './void-field.js?v=1';
 import {initIdentity} from './identity-motion.js?v=3';
 import {initStudioFinale} from './studio-finale.js?v=3';
 import {profile,projects,experiences,skills,certificates} from './portfolio-data.js?v=2';
@@ -149,7 +148,7 @@ $('#motion-toggle').addEventListener('click',()=>setMotion(!motion));reduced.add
 let scrollFrame=0;
 function updateFrame(){scrollFrame=0;const section=$('.hero-sequence'),progress=clamp(-section.getBoundingClientRect().top/Math.max(1,section.offsetHeight-innerHeight)),pose=titleFrame(progress,{portrait:innerWidth<760,motion});$('.hero-type').style.opacity=pose.typeOpacity;$('.hero-type').inert=pose.typeOpacity<.1;$('.hero-type').style.transform=`translateY(${pose.typeY}px)`;$('.hero-top').style.opacity=pose.typeOpacity;$('.hero-bottom').style.opacity=pose.typeOpacity;$('.hero-bottom').inert=pose.typeOpacity<.1;if(!root.classList.contains('spatial-copy-ready'))$('.passage-caption').style.opacity=pose.caption;$('.hero-sticky').style.setProperty('--passage-wash',pose.wash);const art=$('#hero-art'),shift=(innerWidth/2-(art.offsetLeft+art.offsetWidth/2))*smoothCenter(progress);art.style.transform=`translateX(${shift}px) scale(${pose.artScale})`;$('.header').classList.toggle('scrolled',scrollY>90);updateSpace();}
 function smoothCenter(p){const t=clamp(p/.65);return t*t*(3-2*t);}
-function queueFrame(){if(!scrollFrame)scrollFrame=requestAnimationFrame(updateFrame);}addEventListener('scroll',queueFrame,{passive:true});addEventListener('resize',queueFrame);setMotion(motion);initIdentity();initVoidField();
+function queueFrame(){if(!scrollFrame)scrollFrame=requestAnimationFrame(updateFrame);}addEventListener('scroll',queueFrame,{passive:true});addEventListener('resize',queueFrame);setMotion(motion);initIdentity();
 function startStudio(){if(studioStarted)return;studioStarted=true;import('./neural-studio.js?v=7').then(m=>m.initNeuralStudio()).catch(()=>$('#studio-insight').textContent='The experiment could not load. Refresh to try again.');}
 const labObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){startStudio();labObserver.disconnect();}},{rootMargin:'200px'});labObserver.observe($('#lab'));
 // One renderer owns the complete world and its eight real project displays.
@@ -157,7 +156,7 @@ function ensureWorld(){
  if(worldStarted||document.querySelector('dialog[open]')||['lab','index'].includes(worldState.chapter))return;
  worldStarted=true;formObserver.disconnect();
  if(navigator.connection?.saveData||new URL(location.href).searchParams.get('graphics')==='off'){root.classList.add('spatial-fallback');queueFrame();return;}
- import('./spatial-world.bundle.js?v=29').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
+ import('./spatial-world.bundle.js?v=34').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
 }
 const formObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))ensureWorld();},{rootMargin:'0px'});formObserver.observe($('#home'));worldBootReady=true;ensureWorld();
 $$('dialog').forEach(d=>{d.addEventListener('toggle',()=>{if(d.open)spatialController?.release();syncDemo();});d.addEventListener('close',()=>{preview?.resume();requestAnimationFrame(()=>{ensureWorld();spatialController?.update(worldState);syncDemo();});});});
