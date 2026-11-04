@@ -127,3 +127,12 @@ html[data-finale=true] .contact-bottom>div>a{font-size:clamp(12px,1.05vw,18px)}
 .experience-item h3,.gallery-copy h3{letter-spacing:-.02em}
 .gallery-copy h2{letter-spacing:-.04em}
 @media(max-width:759px){.gallery-copy h2{letter-spacing:-.025em}}
+
+/* Light in the negative space, behind native copy and all controls. */
+#void-field{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:0;transition:opacity 1s ease;contain:strict}
+#void-field i,#void-field b{position:absolute;left:0;top:0;display:block;width:680px;height:500px;margin:-250px 0 0 -340px;border-radius:50%;will-change:transform}
+#void-field i{background:radial-gradient(ellipse at 50% 50%,#2459ff35 0%,#174aff22 25%,#174aff0a 47%,transparent 70%)}
+#void-field b{width:540px;height:400px;margin:-200px 0 0 -270px;background:radial-gradient(ellipse at 56% 43%,#1750ff16,transparent 66%)}
+#void-field b:after{content:'';position:absolute;inset:95px 100px 115px 95px;border-radius:50%;border-top:1px solid #d4ff3538;transform:rotate(-28deg);filter:blur(1.4px)}
+body:has(dialog[open]) #void-field,.menu-open #void-field,.motion-off #void-field{opacity:0!important}
+@media(prefers-reduced-motion:reduce),(hover:none),(pointer:coarse){#void-field{display:none}}

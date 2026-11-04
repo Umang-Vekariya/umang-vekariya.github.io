@@ -64,3 +64,5 @@ The atlas now rests as an overlapping hand with no default selection. Hover lift
 The opening identity and transition phrase now occupy fixed world planes to the left of their installations, with genuine camera perspective and a clear central path. Native SVG/HTML retains sharp lettering and the original name interaction. See [spatial-copy.md](docs/spatial-copy.md).
 
 The narrative typography repair uses matching self-hosted Manrope and Instrument Serif fonts, exact native character spacing, and shallow matching outline relief. Reading surfaces stay stable through actual camera and lens movement; interactive surfaces preserve their native hit targets. See [typography-repair.md](docs/typography-repair.md) for the replacement architecture, licenses and verification.
+
+The void responds to fine-pointer movement with a cobalt light footprint and faint lime contour behind the content. It trails gently, fades on stillness/scroll, pauses around real tools and dialogs, and respects motion-off, reduced motion and touch. `void-field.js` schedules work only while its positions settle; it adds no WebGL pass or idle loop.
