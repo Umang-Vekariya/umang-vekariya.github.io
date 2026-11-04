@@ -1,4 +1,4 @@
-import {clamp,smooth} from './engineering-motion.js';
+import {clamp,smooth,atlasPassagePhase} from './engineering-motion.js';
 export const galleryCenter=[0,0,-105];
 export const stations=Array.from({length:8},(_,i)=>{const angle=-Math.PI*.5+i*Math.PI/4;return {angle,x:Math.cos(angle)*31,z:galleryCenter[2]+Math.sin(angle)*27,yaw:Math.atan2(-Math.cos(angle),-Math.sin(angle))};});
 export function mixShot(a,b,t){const p=smooth(0,1,t);if(p===0)return a;if(p===1)return b;return {position:a.position.map((v,i)=>v+(b.position[i]-v)*p),target:a.target.map((v,i)=>v+(b.target[i]-v)*p),fov:a.fov+(b.fov-a.fov)*p};}
@@ -9,7 +9,7 @@ export function stationShot(index,{portrait=false,phase=0,focus=false}={}){
 // The folios finish parting before the lens reaches their plane. Camera and
 // geometry use the same reversible scroll parameter, with no timed handoff.
 export function atlasPassageShot(progress=0,{portrait=false}={}){
- const p=clamp(progress),center=smooth(0,.35,p),dolly=smooth(.28,1,p),x=4.5+(portrait?0:1.5)*center,z=-3-36*dolly;
+ const p=atlasPassagePhase(progress),center=smooth(0,.35,p),dolly=smooth(.28,1,p),x=4.5+(portrait?0:1.5)*center,z=-3-36*dolly;
  return {position:[x,5.2,z],target:[x,4.5,z-15],fov:portrait?50:36};
 }
 export function spatialShot({chapter='home',progress=0,index=0,phase=0,portrait=false,galleryPortrait=portrait,compactHero=false}={}){

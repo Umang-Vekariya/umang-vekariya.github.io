@@ -1,5 +1,7 @@
 export const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 export const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t);};
+// A small reading/interaction margin keeps a slightly scrolled hand usable.
+export const atlasPassagePhase=progress=>clamp((progress-.12)/.88);
 // A single reversible scroll parameter; no timed flight competes with it.
 export function titleFrame(progress,{portrait=false,tablet=false,motion=true}={}){
  const p=motion?clamp(progress):0,push=smooth(.14,.96,p);
