@@ -4,7 +4,7 @@ import {profile,projects,experiences,skills,certificates} from './portfolio-data
 import {projectStories} from './project-stories.js';
 import {projectProof} from './project-proof.js';
 import {demoContent} from './demo-content.js';
-import {createDemoEngine} from './project-demos.js?v=7';
+import {createDemoEngine} from './project-demos.js?v=9';
 import {createProjectPreviews} from './project-previews.js?v=5';
 import {titleFrame,elementFlight,clamp} from './engineering-motion.js?v=5';
 
@@ -156,7 +156,7 @@ function ensureWorld(){
  if(worldStarted||document.querySelector('dialog[open]')||['lab','index'].includes(worldState.chapter))return;
  worldStarted=true;formObserver.disconnect();
  if(navigator.connection?.saveData||new URL(location.href).searchParams.get('graphics')==='off'){root.classList.add('spatial-fallback');queueFrame();return;}
- import('./spatial-world.bundle.js?v=39').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
+ import('./spatial-world.bundle.js?v=42').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
 }
 const formObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))ensureWorld();},{rootMargin:'0px'});formObserver.observe($('#home'));worldBootReady=true;ensureWorld();
 $$('dialog').forEach(d=>{d.addEventListener('toggle',()=>{if(d.open)spatialController?.release();syncDemo();});d.addEventListener('close',()=>{preview?.resume();requestAnimationFrame(()=>{ensureWorld();spatialController?.update(worldState);syncDemo();});});});

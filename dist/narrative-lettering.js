@@ -15,23 +15,25 @@ export function createNarrativeTypesetter(data){
   geometry.translate(0,0,-depth-bevel-.05);geometry.computeBoundingBox();cache.set(key,geometry);return geometry;
  }
  function compose(records){
-  const buckets=Array.from({length:3},()=>({position:[],normal:[],uv:[]}));
+  const buckets=Array.from({length:3},()=>({pieces:[],count:0}));
   for(const r of records){
    const source=glyph(r.character,r);if(!source)continue;
    for(const group of source.groups){
     const material=group.materialIndex===1?1:r.accent?2:0,bucket=buckets[material];
-    for(const [name,attribute] of Object.entries(source.attributes)){
-     if(!bucket[name])continue;const n=attribute.itemSize;
-     for(let i=group.start;i<group.start+group.count;i++)for(let c=0;c<n;c++){
-      let value=attribute.array[i*n+c];if(name==='position'){if(c===0)value+=r.x;else if(c===1)value-=r.baseline;}bucket[name].push(value);
-     }
-    }
+    bucket.pieces.push({source,group,x:r.x,baseline:r.baseline});bucket.count+=group.count;
    }
   }
-  const geometry=new THREE.BufferGeometry();let start=0;
-  buckets.forEach((b,i)=>{const count=b.position.length/3;if(count){geometry.addGroup(start,count,i);start+=count;}});
-  if(!start)return null;
-  for(const [name,size] of [['position',3],['normal',3],['uv',2]])geometry.setAttribute(name,new THREE.Float32BufferAttribute(buckets.flatMap(b=>b[name]),size));
+  const count=buckets.reduce((sum,b)=>sum+b.count,0);if(!count)return null;
+  const geometry=new THREE.BufferGeometry(),attributes={position:new Float32Array(count*3),normal:new Float32Array(count*3),uv:new Float32Array(count*2)};let start=0;
+  buckets.forEach((b,material)=>{
+   if(!b.count)return;geometry.addGroup(start,b.count,material);
+   for(const {source,group,x,baseline} of b.pieces){
+    for(const [name,size] of [['position',3],['normal',3],['uv',2]])attributes[name].set(source.attributes[name].array.subarray(group.start*size,(group.start+group.count)*size),start*size);
+    for(let i=start*3;i<(start+group.count)*3;i+=3){attributes.position[i]+=x;attributes.position[i+1]-=baseline;}
+    start+=group.count;
+   }
+  });
+  for(const [name,size] of [['position',3],['normal',3],['uv',2]])geometry.setAttribute(name,new THREE.BufferAttribute(attributes[name],size));
   geometry.computeBoundingBox();return geometry;
  }
  return {glyph,compose,ascender(fontKey,size){return (data[fontKey]?.ascender||1000)*size/1000;},dispose(){cache.forEach(g=>g.dispose());cache.clear();}};

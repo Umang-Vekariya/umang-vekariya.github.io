@@ -29,7 +29,7 @@ test('both sculpture states keep continuous normals at the closed machining seam
 
 test('each exhibit retains its own live frame when the shared demo moves on, including a late poster load',()=>{
  const canvas=()=>{const c={pixels:null},ctx={fillStyle:'',fillRect(){c.pixels='background';},drawImage(image){c.pixels=image.id;}};c.getContext=()=>ctx;return c;};
- const a=createExhibitSurface(canvas()),b=createExhibitSurface(canvas());a.poster({id:'poster A',width:100,height:200});b.poster({id:'poster B',width:200,height:100});
- const shared={id:'live A'};a.frame(shared);shared.id='live B';b.frame(shared);a.poster({id:'late A',width:100,height:100});
- assert.equal(a.canvas.pixels,'live A');assert.equal(b.canvas.pixels,'live B');assert.notEqual(a.texture,b.texture);assert.equal(a.live,true);a.dispose();b.dispose();
+ const a=createExhibitSurface(canvas()),b=createExhibitSurface(canvas());a.poster({id:'poster A',width:100,height:200});b.poster({id:'poster B',width:200,height:100});assert.equal(a.texture.generateMipmaps,true,'stationary distant evidence lost its filtering');
+ const shared={id:'live A'};a.frame(shared);assert.equal(a.texture.image,shared,'the active source is copied again before upload');assert.equal(a.canvas.pixels,'poster A');a.freeze();shared.id='live B';b.frame(shared);b.freeze();a.poster({id:'late A',width:100,height:100});
+ assert.equal(a.canvas.pixels,'live A');assert.equal(b.canvas.pixels,'live B');assert.notEqual(a.texture,b.texture);assert.equal(a.live,true);assert.equal(a.texture.generateMipmaps,false,'live uploads regenerate the full mip chain');assert.equal(a.texture.minFilter,THREE.LinearFilter);a.dispose();b.dispose();
 });

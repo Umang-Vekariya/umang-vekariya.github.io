@@ -36,7 +36,7 @@ test('preserved interactive models calculate coverage, aggregation, offline dedu
  const q=new BookingQueue(2);q.join('Ada');q.join('Kai');q.join('Noor');q.join('Mira');assert.deepEqual(q.waiting,['Noor','Mira']);assert.equal(q.cancel('Ada'),'Noor');assert.deepEqual(q.booked,['Kai','Noor']);assert.deepEqual(q.waiting,['Mira']);
 });
 
-test('demo rendering stops outside a project and reduced motion draws on demand',async()=>{
+test('static demos settle after updates, animated demos keep playing, and reduced motion draws on demand',async()=>{
  const {createDemoEngine}=await import('../dist/project-demos.js');
  const saved={document:globalThis.document,requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame};
  const frames=new Map(),listeners=new Map();let next=0,paint=0;
@@ -46,8 +46,11 @@ test('demo rendering stops outside a project and reduced motion draws on demand'
  globalThis.document={hidden:false,createElement:canvas,querySelector:s=>({'#demo-flat':flat,'#display-dialog':display,'#demo-status':status,'#expanded-act':button}[s]||null),addEventListener:(n,fn)=>listeners.set(n,fn),removeEventListener:n=>listeners.delete(n)};
  globalThis.requestAnimationFrame=fn=>{frames.set(++next,fn);return next;};globalThis.cancelAnimationFrame=id=>frames.delete(id);
  try{
-  const engine=createDemoEngine();assert.equal(frames.size,0,'idle page has a demo loop');engine.setProgress(0,true,true);assert.equal(frames.size,1);let [id,fn]=frames.entries().next().value;frames.delete(id);fn(100);assert.ok(paint>0);assert.equal(frames.size,1);
-  engine.setProgress(0,false,true);assert.equal(frames.size,0);engine.setProgress(2,true,false);assert.equal(frames.size,1);[id,fn]=frames.entries().next().value;frames.delete(id);fn(200);assert.equal(frames.size,0,'reduced motion continues a render loop');
+  const run=now=>{const [id,fn]=frames.entries().next().value;frames.delete(id);fn(now);};
+  const engine=createDemoEngine();assert.equal(frames.size,0,'idle page has a demo loop');engine.setProgress(0,true,true);assert.equal(frames.size,1);run(100);assert.ok(paint>0);assert.equal(frames.size,0,'an unchanged static display keeps painting and uploading');
+  const revision=engine.revision;engine.setProgress(0,true,true);assert.equal(frames.size,0,'unchanged scroll updates restart the static demo');engine.setProgress(1,true,true);run(105);assert.equal(engine.revision,revision+1,'a real stage change is delayed by the animation throttle');assert.equal(frames.size,0);
+  const switches=[];engine.subscribeProjectChange((from,to)=>switches.push({from,to,pixels:engine.frameProjectId}));assert.equal(engine.frameProjectId,'wnams');engine.setProject('realityforge');assert.deepEqual(switches,[{from:'wnams',to:'realityforge',pixels:'wnams'}],'the previous exhibit cannot freeze its pixels before the shared canvas changes');assert.equal(engine.frameProjectId,'wnams','changing selection relabels pixels before they are painted');engine.setProgress(2,true,true);run(150);assert.equal(engine.frameProjectId,'realityforge');assert.equal(frames.size,1,'actual motion stopped');
+  engine.setProgress(0,false,true);assert.equal(frames.size,0);engine.setProgress(2,true,false);assert.equal(frames.size,1);run(200);assert.equal(frames.size,0,'reduced motion continues a render loop');
   engine.pointer(.7,.4,'down');assert.equal(frames.size,1,'a real interaction did not request a new frame');engine.dispose();assert.equal(frames.size,0);assert.equal(listeners.size,0);
  }finally{Object.assign(globalThis,saved);}
 });

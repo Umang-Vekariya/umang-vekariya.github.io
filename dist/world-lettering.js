@@ -3,6 +3,8 @@ import {identityShapes,extrudedLettering,textGeometry,letterPose} from './letter
 import {createNarrativeTypesetter,narrativeFontKey,worldPlaneMatrix,readingSurface} from './narrative-lettering.js';
 import {copyAnchors,copyOpacity} from './spatial-copy.js';
 import {screenTransform} from './studio-reveal-motion.js';
+import {projects} from './portfolio-data.js';
+import {demoContent} from './demo-content.js';
 
 function planeMatrix(points,width){
  const right=points[1].clone().sub(points[0]),scale=right.length()/width;right.normalize();
@@ -61,12 +63,12 @@ export function createWorldLettering(scene,schedule){
   ['#contact>.chapter-rule',null],['.contact-kicker',null],['#contact-title','#contact-title'],['.contact-bottom',null],
   ['.footer',null]
  ];
- const panels=[],metrics=new Map();let typesetter=null,dirty=true,disposed=false,start=performance.now(),lastIndex=-1,lastFinale='',pointer={x:0,y:0,h:0},aim={x:0,y:0,h:0};
+ const panels=[],metrics=new Map();let typesetter=null,dirty=true,disposed=false,start=performance.now(),warmTask=0,pointer={x:0,y:0,h:0},aim={x:0,y:0,h:0};
  for(const [selector,headings] of surfaceConfigs){
   const element=document.querySelector(selector);if(!element)continue;
   const slot=document.createElement('div');slot.className=element.className+' world-surface-slot';element.before(slot);slot.append(element);
   const style=element.getAttribute('style');element.classList.add('scene-type-surface');
-  const group=new THREE.Group();group.matrixAutoUpdate=false;scene.add(group);panels.push({element,slot,style,group,headings,headingNodes:[]});
+  const group=new THREE.Group();group.matrixAutoUpdate=false;scene.add(group);panels.push({element,slot,style,group,headings,headingNodes:[],dirty:true,signature:null});
  }
  root.classList.add('world-lettering-ready','mesh-identity-ready');
  function replaceRelief(group,records,materials){
@@ -74,36 +76,49 @@ export function createWorldLettering(scene,schedule){
   const geometry=typesetter?.compose(records);if(geometry){const mesh=new THREE.Mesh(geometry,materials);mesh.layers.set(1);group.add(mesh);}
  }
  function measure(){
-  dirty=false;
   for(const p of panels){
+   if(!p.dirty)continue;p.dirty=false;
    p.element.style.transform='';const r=p.slot.getBoundingClientRect();
    if(!r.width)continue;
    const headings=p.headings?(p.element.matches(p.headings)?[p.element]:[...p.element.querySelectorAll(p.headings)]):[];
    p.headingNodes.forEach(h=>h.classList.remove('mesh-heading'));p.headingNodes=headings;
    const records=[];for(const heading of headings){heading.classList.add('mesh-heading');if(typesetter)records.push(...headingGlyphs(heading,r,typesetter,metrics));}
-   replaceRelief(p.group,records,[face,edge,accent]);
+   const signature=JSON.stringify(records);if(signature!==p.signature){p.signature=signature;replaceRelief(p.group,records,[face,edge,accent]);}
   }
+  if(!dirty)return;dirty=false;
   const caption=document.querySelector('.world-caption'),prior=caption.style.transform;caption.style.transform='';const r=caption.getBoundingClientRect(),records=[];
   if(typesetter)for(const heading of caption.querySelectorAll(':scope>span,:scope>em'))records.push(...headingGlyphs(heading,r,typesetter,metrics));
   replaceRelief(captionRoot,records,[captionFace,captionEdge,captionAccent]);caption.style.transform=prior;
   const anchors=copyAnchors(innerWidth,innerHeight);nameRoot.matrix.copy(planeMatrix(anchors.name,720));nameMotion.scale.setScalar(innerWidth<760?.94:1);captionRoot.matrix.copy(worldPlaneMatrix(anchors.caption,720,360,screenTransform));
  }
- const mark=()=>{if(disposed)return;dirty=true;schedule();};
- const observer=new ResizeObserver(mark);panels.forEach(p=>observer.observe(p.element));
+ const mark=()=>{if(disposed)return;dirty=true;panels.forEach(p=>p.dirty=true);schedule();};
+ function warmGallery(){
+  if(warmTask)cancelIdleCallback(warmTask);warmTask=0;
+  if(!typesetter||!globalThis.requestIdleCallback)return;
+  const pending=[],seen=new Set();
+  for(const [selector,text] of [['#gallery-title',projects.map(p=>p.name).join('')],['#gallery-step-title',demoContent.flatMap(d=>d.steps.map(s=>s[1])).join('')]]){
+   const style=getComputedStyle(document.querySelector(selector)),fontKey=narrativeFontKey(style.fontFamily,style.fontWeight,style.fontStyle),size=parseFloat(style.fontSize);
+   for(const character of text){const key=fontKey+'/'+size+'/'+character;if(!character.trim()||seen.has(key))continue;seen.add(key);pending.push({character,fontKey,size});}
+  }
+  // Prepare one cached outline per idle slice; never build a whole project on a click.
+  const next=deadline=>{warmTask=0;if(disposed)return;if(deadline.timeRemaining()>5){const r=pending.shift();if(r)typesetter.glyph(r.character,r);}if(pending.length)warmTask=requestIdleCallback(next);};
+  warmTask=requestIdleCallback(next);
+ }
+ const observer=new ResizeObserver(entries=>{if(disposed)return;for(const entry of entries){const p=panels.find(p=>p.element===entry.target);if(p)p.dirty=true;}schedule();});panels.forEach(p=>observer.observe(p.element));
  const observedText=['#gallery-title','#gallery-step-title','#experience-list'].map(s=>document.querySelector(s)).filter(Boolean),textCache=new Map(observedText.map(e=>[e,e.textContent]));
- const contentObserver=new MutationObserver(()=>{let changed=false;for(const e of observedText)if(textCache.get(e)!==e.textContent){textCache.set(e,e.textContent);changed=true;}if(changed)mark();});for(const e of observedText)contentObserver.observe(e,{subtree:true,childList:true,characterData:true});
+ const contentObserver=new MutationObserver(()=>{let changed=false;for(const e of observedText)if(textCache.get(e)!==e.textContent){textCache.set(e,e.textContent);for(const p of panels)if(p.element.contains(e))p.dirty=true;changed=true;}if(changed)schedule();});for(const e of observedText)contentObserver.observe(e,{subtree:true,childList:true,characterData:true});
  document.fonts.ready.then(()=>{metrics.clear();mark();});
- fetch(new URL('./assets/fonts/narrative-outlines.json',import.meta.url)).then(r=>{if(!r.ok)throw new Error('Font outlines unavailable');return r.json();}).then(data=>{if(disposed)return;typesetter=createNarrativeTypesetter(data);title.dataset.relief='ready';mark();}).catch(()=>{if(!disposed)title.dataset.typeFallback='native';});
+ fetch(new URL('./assets/fonts/narrative-outlines.json',import.meta.url)).then(r=>{if(!r.ok)throw new Error('Font outlines unavailable');return r.json();}).then(data=>{if(disposed)return;typesetter=createNarrativeTypesetter(data);title.dataset.relief='ready';mark();warmGallery();}).catch(()=>{if(!disposed)title.dataset.typeFallback='native';});
  const pointerMove=e=>{if(e.pointerType==='touch'||!motionAllowed())return;const r=title.getBoundingClientRect();pointer={x:THREE.MathUtils.clamp((e.clientX-r.left)/r.width-.5,-.5,.5),y:THREE.MathUtils.clamp((e.clientY-r.top)/r.height-.5,-.5,.5),h:1};schedule();};
  const pointerLeave=()=>{pointer={x:0,y:0,h:0};if(motionAllowed())schedule();};
  const replayName=()=>{if(!motionAllowed())return;start=performance.now();schedule();};title.addEventListener('pointermove',pointerMove);title.addEventListener('pointerleave',pointerLeave);replay.addEventListener('click',replayName);addEventListener('blur',pointerLeave);
  const temp=new THREE.Vector3();
  function update(camera,state,now,dt,motion){
   if(disposed)return false;
-  if(state.index!==lastIndex||root.dataset.finale!==lastFinale){dirty=true;lastIndex=state.index;lastFinale=root.dataset.finale;}
-  if(dirty)measure();
+  if(dirty||panels.some(p=>p.dirty))measure();
   const k=1-Math.exp(-Math.min(.05,dt)*12);for(const key of ['x','y','h'])aim[key]=motion?aim[key]+(pointer[key]-aim[key])*k:0;
   const nameOpacity=copyOpacity('name',state),captionOpacity=copyOpacity('caption',state);for(const material of [nameFace,nameEdge]){material.opacity=nameOpacity;material.depthWrite=nameOpacity>.01;}for(const material of [captionFace,captionEdge,captionAccent]){material.opacity=captionOpacity;material.depthWrite=captionOpacity>.01;}
+  nameRoot.visible=nameOpacity>.002;captionRoot.visible=captionOpacity>.002;
   let moving=false;
   for(const [i,mesh] of letters.entries()){
    const pose=letterPose(i,now-start,{motion,x:aim.x,y:aim.y,hover:aim.h});mesh.position.copy(mesh.userData.rest).add(temp.set(pose.x,pose.y,pose.z));mesh.rotation.set(pose.rx,pose.ry,pose.rz);moving||=pose.moving&&nameOpacity>0;
@@ -121,8 +136,8 @@ export function createWorldLettering(scene,schedule){
   }
   title.dataset.sculpted='true';title.dataset.typeFrame=String(Math.round(now));title.dataset.animating=String(moving);return moving||(nameOpacity>0&&Math.abs(aim.x-pointer.x)+Math.abs(aim.y-pointer.y)+Math.abs(aim.h-pointer.h)>.002&&motion);
  }
- return {update,resize:mark,dispose(){
-  if(disposed)return;disposed=true;observer.disconnect();contentObserver.disconnect();title.removeEventListener('pointermove',pointerMove);title.removeEventListener('pointerleave',pointerLeave);replay.removeEventListener('click',replayName);removeEventListener('blur',pointerLeave);
+ return {update,resize(){mark();warmGallery();},dispose(){
+  if(disposed)return;disposed=true;if(warmTask)cancelIdleCallback(warmTask);observer.disconnect();contentObserver.disconnect();title.removeEventListener('pointermove',pointerMove);title.removeEventListener('pointerleave',pointerLeave);replay.removeEventListener('click',replayName);removeEventListener('blur',pointerLeave);
   root.classList.remove('world-lettering-ready','mesh-identity-ready');delete title.dataset.sculpted;delete title.dataset.typeFrame;delete title.dataset.typeFallback;delete title.dataset.relief;typesetter?.dispose();
   for(const p of panels){p.headingNodes.forEach(h=>h.classList.remove('mesh-heading'));p.element.classList.remove('scene-type-surface');if(p.style===null)p.element.removeAttribute('style');else p.element.setAttribute('style',p.style);p.slot.replaceWith(p.element);}
  }};
