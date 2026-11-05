@@ -13,6 +13,6 @@ export function elementFlight(from,to){
 }
 
 // Longer routes and turns receive more time, without delaying small controls.
-export function journeyDuration(distance,angle=0){return clamp(1500+Math.max(0,distance)*30+Math.max(0,angle)*240,1700,3200);}
+export function journeyDuration(distance,angle=0){return clamp(1650+Math.max(0,distance)*33+Math.max(0,angle)*260,1900,3600);}
 
 export function journeyArc(distance,t){return clamp((distance-30)*.25,0,16)*Math.sin(Math.PI*clamp(t));}

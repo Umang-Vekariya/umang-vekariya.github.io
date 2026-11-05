@@ -1,6 +1,7 @@
 import {interpolateRSSI,aggregateFrames,Outbox,BookingQueue,fitMotion,explainAction} from './demo-models.js';
 import {ReplaySession,drawReconstruction} from './assets/replay-engine.js';
 import {demoContent} from './demo-content.js';
+import {exhibitCopy} from './project-presentation.js';
 const C={bg:'#04091c',panel:'#0b1c4b',ink:'#edf3ff',muted:'#99b3e8',line:'#2446a2',red:'#7198ff',green:'#d4ff35'};
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 export function createDemoEngine(){
@@ -24,11 +25,11 @@ export function createDemoEngine(){
  function dot(x,y,r=6,color=C.red){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
  function wrap(t,x,y,max=430,size=25,color=C.muted){let row='',dy=0;ctx.font=`400 ${size}px "DM Sans",sans-serif`;for(const word of String(t).split(' ')){const next=row+word+' ';if(ctx.measureText(next).width>max&&row){text(row,x,y+dy,size,color);row=word+' ';dy+=size*1.5;}else row=next;}text(row,x,y+dy,size,color);return y+dy;}
  function tag(t,x,y,color=C.red){rect(x,y-24,ctx.measureText(t).width+34,34,'#1c2022',color,3);text(t,x+12,y,18,color,true);}
- function base(name,label){ctx.fillStyle=C.bg;ctx.fillRect(0,0,1200,760);text(name.toUpperCase(),40,57,28,C.ink,true);text(label,40,100,18,C.muted,true);line(40,123,1160,123);text(['01 / INPUT','02 / PROCESS','03 / RESULT'][Math.min(2,Math.round(phase))],900,58,18,C.red,true);line(40,705,1160,705);text(demoContent.find(d=>d.id===projectId).kind,40,738,15,C.muted,true);dot(1130,731,4,C.green);}
- function status(message){dirty=true;const node=document.querySelector('#demo-status');if(node)node.textContent=message;const gallery=document.querySelector('#gallery-status');if(gallery)gallery.textContent=message;schedule();}
- function loadPoly(){const s=states.polyglot;if(s.examples||s.loading)return;s.loading=true;fetch('./assets/polyglot-walkthrough.json').then(r=>{if(!r.ok)throw new Error();return r.json();}).then(v=>{s.examples=v;s.loading=false;status('Actual compiler records loaded.');}).catch(()=>{s.loading=false;status('Compiler records could not load. The full IDE is available below.');});}
- function loadIntent(){const s=states['intent-lab'];if(s.runs||s.loading)return;s.loading=true;fetch('./assets/intent-rehearsal.json').then(r=>{if(!r.ok)throw new Error();return r.json();}).then(d=>{s.runs=d.runs;s.loading=false;status('Four actual local agent runs loaded. Recorded 27 October 2026.');}).catch(()=>{s.loading=false;status('Recorded runs could not load. Please reload.');});}
- function loadReplay(){const s=states['playable-replay'];if(s.session||s.loading)return;s.loading=true;Promise.all(['scene','replay'].map(n=>fetch('./apps/playable-replay/'+n+'.json').then(r=>{if(!r.ok)throw new Error();return r.json();}))).then(([scene,replay])=>{s.scene=scene;s.replay=replay;s.session=new ReplaySession(scene,replay);s.loading=false;status('Actual exported scene, observed tracks and inferred physics loaded.');}).catch(()=>{s.loading=false;status('Reconstruction could not load. Open the complete demo to retry.');});}
+ function base(name,label){const copy=exhibitCopy[projectId],step=Math.min(2,Math.round(phase)),stage=demoContent.find(d=>d.id===projectId).steps[step][0];ctx.fillStyle=C.bg;ctx.fillRect(0,0,1200,760);text(name,40,59,36,C.ink);text(copy.subtitle,40,103,23,C.muted,true);line(40,128,1160,128);text(`0${step+1} / ${stage.toUpperCase()}`,900,58,23,C.red,true);line(40,705,1160,705);text(copy.scope,40,741,22,C.muted);dot(1130,733,5,C.green);}
+ function status(message,source=projectId){dirty=true;if(source!==projectId)return;const node=document.querySelector('#demo-status');if(node)node.textContent=message;const gallery=document.querySelector('#gallery-status');if(gallery)gallery.textContent=message;schedule();}
+ function loadPoly(){const s=states.polyglot;if(s.examples||s.loading)return;s.loading=true;fetch('./assets/polyglot-walkthrough.json').then(r=>{if(!r.ok)throw new Error();return r.json();}).then(v=>{s.examples=v;s.loading=false;status('Actual compiler records loaded.','polyglot');}).catch(()=>{s.loading=false;status('Compiler records could not load. The full IDE is available below.','polyglot');});}
+ function loadIntent(){const s=states['intent-lab'];if(s.runs||s.loading)return;s.loading=true;fetch('./assets/intent-rehearsal.json').then(r=>{if(!r.ok)throw new Error();return r.json();}).then(d=>{s.runs=d.runs;s.loading=false;status('Four actual local agent runs loaded. Recorded 27 October 2026.','intent-lab');}).catch(()=>{s.loading=false;status('Recorded runs could not load. Please reload.','intent-lab');});}
+ function loadReplay(){const s=states['playable-replay'];if(s.session||s.loading)return;s.loading=true;Promise.all(['scene','replay'].map(n=>fetch('./apps/playable-replay/'+n+'.json').then(r=>{if(!r.ok)throw new Error();return r.json();}))).then(([scene,replay])=>{s.scene=scene;s.replay=replay;s.session=new ReplaySession(scene,replay);s.loading=false;status('Actual exported scene, observed tracks and inferred physics loaded.','playable-replay');}).catch(()=>{s.loading=false;status('Reconstruction could not load. Open the complete demo to retry.','playable-replay');});}
  function drawSignal(){
   const s=states.wnams;base('WNAMS','SAMPLE SURVEY / IDW COVERAGE EXPLANATION');
   rect(40,155,310,510);text('Survey points',65,199,27);text('x / y / signal',65,232,18,C.muted,true);
@@ -82,7 +83,7 @@ export function createDemoEngine(){
   else if(motion||s.control){s.accumulator+=dt;while(s.accumulator>=1/60){session.tick(s.paddle*scene.width);s.accumulator-=1/60;}}
   const state=session.display();drawReconstruction(gameCanvas,scene,state);ctx.drawImage(gameCanvas,45,160,777,518);
   rect(846,160,310,518);text('RECONSTRUCTION',867,203,19,C.muted,true);text(s.control?'YOU CONTROL':phase>.6?'INFERRED MODEL':'OBSERVED STATES',867,244,20,C.green,true);
-  const stats=[['SOURCE','Staggered fixture'],['SOURCE FRAME',String(session.frame+1)+' / '+scene.frame_count],['BRICKS LEFT',state?.alive_brick_ids?.length??'—'],['PHYSICS',scene.physics_hz+' Hz'],['MANUAL TIME',s.control?(state.elapsed||0).toFixed(2)+' s':'—']];stats.forEach(([k,v],i)=>{text(k,867,300+i*62,15,C.muted,true);text(v,867,326+i*62,21,C.ink,true);});
+  const stats=[['SOURCE','Staggered fixture'],['SOURCE FRAME',String(session.frame+1)+' / '+scene.frame_count],['BRICKS LEFT',state?.alive_brick_ids?.length??'—'],['PHYSICS',scene.physics_hz+' Hz'],['MANUAL TIME',s.control?(state.elapsed||0).toFixed(2)+' s':'—']];stats.forEach(([k,v],i)=>{text(k,867,300+i*62,19,C.muted,true);text(v,867,326+i*62,21,C.ink,true);});
   if(s.control&&state.status!=='running'){if(s.lastStatus!==state.status){s.lastStatus=state.status;status(state.status==='won'?'All bricks cleared in your reconstructed branch.':'Branch ended. Reset, then take control to try again.');}rect(160,340,550,90,'#101315ee');text(state.status==='won'?'ALL BRICKS CLEARED':'BRANCH ENDED — RESET TO RETRY',190,392,24,C.ink,true);}
  }
  function drawIntent(){
@@ -91,7 +92,7 @@ export function createDemoEngine(){
   const r=s.runs[s.scenario];rect(40,155,535,515);rect(600,155,560,515);
   text(r.title,65,198,27,C.red);text('ORIGINAL USER REQUEST',65,244,18,C.muted,true);wrap(r.request,65,287,475,25,C.ink);
   text('MODEL-GENERATED PLAN',65,450,18,C.muted,true);r.model_generated_plan.steps.slice(0,3).forEach((a,i)=>text(a.name+'(...)',65,495+i*34,24,C.green,true));
-  if(phase<.5){text('BEFORE EXTERNAL CONTENT',630,205,21,C.muted,true);wrap('The task defines the plan. Email content cannot grant permission to send or attach a file.',630,285,485,32,C.ink);}
+  if(phase<.5){text('BEFORE EXTERNAL CONTENT',630,205,21,C.muted,true);wrap('The request defines the plan. External content cannot grant permission.',630,285,485,34,C.ink);}
   else if(phase<1.5){text('ACTUAL PROPOSALS & CHECKS',630,205,21,C.muted,true);r.events.slice(0,3).forEach((e,i)=>{const y=268+i*117;text(e.action.name,630,y,27,C.ink,true);text(e.assessment.predicted_label.toUpperCase(),630,y+35,19,C.green,true);text('PERMISSION '+e.trusted_permission.toUpperCase()+' / '+e.decision.toUpperCase(),630,y+66,17,C.muted,true);});}
   else {text('ACTUAL FINAL ANSWER',630,205,21,C.muted,true);wrap(r.state.answer,630,265,480,29,C.ink);text('MOCK SEND RECEIPTS: '+r.state.outbox.length,630,485,22,C.green,true);text('REAL EMAILS SENT: 0',630,532,22,C.green,true);text('RECORDED RUN / '+r.elapsed_seconds.toFixed(2)+' s',630,605,19,C.muted,true);}
  }

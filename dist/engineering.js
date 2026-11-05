@@ -1,12 +1,13 @@
+import {featuredWork,orderForReading,exhibitCopy} from './project-presentation.js?v=1';
 import {initIdentity} from './identity-motion.js?v=4';
-import {initStudioFinale} from './studio-finale.js?v=5';
+import {initStudioFinale} from './studio-finale.js?v=6';
 import {profile,projects,experiences,skills,certificates} from './portfolio-data.js?v=3';
 import {projectStories} from './project-stories.js';
 import {projectProof} from './project-proof.js';
 import {demoContent} from './demo-content.js';
-import {createDemoEngine} from './project-demos.js?v=10';
+import {createDemoEngine} from './project-demos.js?v=11';
 import {createProjectPreviews} from './project-previews.js?v=6';
-import {titleFrame,elementFlight,clamp} from './engineering-motion.js?v=5';
+import {titleFrame,elementFlight,clamp} from './engineering-motion.js?v=6';
 
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -29,11 +30,11 @@ skillTabs.addEventListener('click',e=>{const b=e.target.closest('[data-skill]');
 
 function media(p){const evidence=projectStories[p.id].evidence[0];return evidence?`<img class="project-capture" src="${esc(evidence.poster||evidence.src)}" alt="${esc(evidence.alt)}" loading="lazy" decoding="async">`:`<div class="deepfake-art" role="img" aria-label="Diagram of sampled frame scores, illustrative values"><div class="frame-strip" data-score="0.12"></div><div class="frame-strip" data-score="0.78"></div><div class="frame-strip" data-score="0.81"></div><div class="frame-strip" data-score="0.39"></div></div>`;}
 function renderIndex(filter='All'){
- $('#project-index').innerHTML=projects.filter(p=>filter==='All'||p.category===filter).map(p=>{const i=projects.indexOf(p),proof=projectProof[p.id],e=projectStories[p.id].evidence[0];return `<article class="project-tile" data-project="${p.id}" style="--project-surface:${surfaces[i]}"><div class="tile-media" data-preview="${p.id}"><button class="tile-preview" data-project-open="${p.id}" aria-label="Explore ${esc(p.name)}">${media(p)}<canvas class="project-preview-canvas" aria-hidden="true"></canvas><span class="tile-number">${String(i+1).padStart(2,'0')} / 08</span><span class="tile-open" aria-hidden="true">↗</span><span class="capture-type">${e?'FROM THE ACTUAL PROJECT':'ILLUSTRATIVE FRAME SCORES'}</span></button><button class="preview-toggle" aria-label="Play or pause ${esc(p.name)} preview" aria-pressed="false">Play preview ↗</button></div><div class="tile-meta"><p>${esc(p.kind)}<span>${esc(p.category)}</span></p><h4><button data-project-open="${p.id}">${esc(p.name)}<span>↗</span></button></h4><p class="tile-premise">${esc(p.short)}</p><div class="tile-stack">${p.stack.slice(0,3).map(s=>`<span>${esc(s)}</span>`).join('')}</div><a class="tile-details" href="/projects/${p.id}/">The story & evidence <span>↗</span></a></div></article>`;}).join('');preview?.refresh();
+ $('#project-index').innerHTML=orderForReading(projects).filter(p=>filter==='All'||p.category===filter).map(p=>{const i=projects.indexOf(p),proof=projectProof[p.id],e=projectStories[p.id].evidence[0],feature=featuredWork.find(f=>f.id===p.id);return `<article class="project-tile${feature?' tile-featured':''}" data-project="${p.id}" style="--project-surface:${surfaces[i]}"><div class="tile-media" data-preview="${p.id}"><button class="tile-preview" data-project-open="${p.id}" aria-label="Explore ${esc(p.name)}">${media(p)}<canvas class="project-preview-canvas" aria-hidden="true"></canvas><span class="tile-number">${String(i+1).padStart(2,'0')} / 08</span><span class="tile-open" aria-hidden="true">↗</span><span class="capture-type">${e?'FROM THE ACTUAL PROJECT':'ILLUSTRATIVE FRAME SCORES'}</span></button><button class="preview-toggle" aria-label="Play or pause ${esc(p.name)} preview" aria-pressed="false">Play preview ↗</button></div><div class="tile-meta">${feature?`<span class="featured-label">SELECTED BUILD / 0${featuredWork.indexOf(feature)+1}</span>`:''}<p class="tile-category">${esc(p.kind)}<span>${esc(p.category)}</span></p><h4><button data-project-open="${p.id}">${esc(p.name)}<span>↗</span></button></h4><p class="tile-premise">${esc(feature?.contribution||p.short)}</p>${feature?`<p class="tile-proof">${esc(feature.evidence)}</p>`:''}<div class="tile-stack">${p.stack.slice(0,3).map(s=>`<span>${esc(s)}</span>`).join('')}</div><a class="tile-details" href="/projects/${p.id}/">The story & evidence <span>↗</span></a></div></article>`;}).join('');preview?.refresh();
 }
 renderIndex();preview=createProjectPreviews({autoplay:false});preview.refresh();
 $$('[data-filter]').forEach(b=>b.addEventListener('click',()=>{$$('[data-filter]').forEach(el=>el.setAttribute('aria-pressed',String(el===b)));renderIndex(b.dataset.filter);}));
-$('#quick-projects').innerHTML=projects.map((p,i)=>`<button data-project-open="${p.id}">${esc(p.name)}<span>${String(i+1).padStart(2,'0')} ↗</span></button>`).join('');
+$('#quick-projects').innerHTML=orderForReading(projects).map((p,i)=>`<button data-project-open="${p.id}">${esc(p.name)}<span>${featuredWork.some(f=>f.id===p.id)?'SELECTED':String(projects.indexOf(p)+1).padStart(2,'0')} ↗</span></button>`).join('');
 const projectDialog=$('#display-dialog'),appDialog=$('#app-dialog'),engine=createDemoEngine();
 function syncDemo(){
  if(document.querySelector('dialog[open]')&&!projectDialog.open){engine.setProgress(phase,false,motion);return;}
@@ -44,14 +45,14 @@ function syncDemo(){
 const studyObserver=new IntersectionObserver(entries=>{studyVisible=entries[0].isIntersecting;syncDemo();},{threshold:0});studyObserver.observe($('#demo-flat'));
 
 const gallery=$('#gallery');
-$('#gallery-map').innerHTML=projects.map((p,i)=>`<button data-gallery-go="${i}"><span>${String(i+1).padStart(2,'0')}</span>${esc(p.name)}</button>`).join('');
+$('#gallery-map').innerHTML=projects.map((p,i)=>`<button data-gallery-go="${i}"${featuredWork.some(f=>f.id===p.id)?' data-selected-build':''}><span>${String(i+1).padStart(2,'0')}</span>${esc(p.name)}</button>`).join('');
 $('#gallery-picker').innerHTML=projects.map((p,i)=>`<button data-gallery-go="${i}" aria-pressed="${i===0}">${esc(p.name)}</button>`).join('');
 $('#gallery-select').innerHTML=projects.map((p,i)=>`<option value="${i}">${String(i+1).padStart(2,'0')} · ${esc(p.name)}</option>`).join('');
-function galleryStepUI(){const config=demoContent[galleryIndex],step=config.steps[galleryStep];$('#gallery-step-title').textContent=step[1];$('#gallery-step-note').textContent=step[2];$$('[data-gallery-step]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.galleryStep)===galleryStep)));}
+function galleryStepUI(){const config=demoContent[galleryIndex],step=config.steps[galleryStep];$('#gallery-step-title').textContent=step[1];$('#gallery-step-note').textContent=exhibitCopy[config.id].steps[galleryStep];$$('[data-gallery-step]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.galleryStep)===galleryStep)));}
 let galleryRendered=-1;
 function renderGallery(i,force=false){
  if(galleryRendered===i&&!force){galleryStepUI();return;}galleryRendered=i;const p=projects[i],config=demoContent[i];
- $('#gallery-count').textContent=String(i+1).padStart(2,'0')+' / 08';$('#gallery-category').textContent=p.kind.toUpperCase();$('#gallery-title').textContent=p.name;$('#gallery-premise').textContent=p.short;$('#gallery-kind').textContent=config.kind;
+ $('#gallery-count').textContent=String(i+1).padStart(2,'0')+' / 08';$('#gallery-category').textContent=(featuredWork.some(f=>f.id===p.id)?'SELECTED BUILD / ':'')+p.kind.toUpperCase();$('#gallery-title').textContent=p.name;$('#gallery-premise').textContent=p.short;$('#gallery-kind').textContent=exhibitCopy[p.id].scope;
  $('#gallery-select').value=String(i);$$('#gallery-picker [data-gallery-go]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.galleryGo)===i)));
  $('#gallery-steps').innerHTML=config.steps.map((t,j)=>`<button data-gallery-step="${j}" aria-pressed="${j===galleryStep}">0${j+1} ${esc(t[0])}</button>`).join('');
  if(!projectDialog.open){engine.setProject(p.id);engine.bindControls($('#gallery-controls'),{prefix:'gallery'});$('#gallery-status').textContent=projectProof[p.id].try;}galleryStepUI();
@@ -85,8 +86,8 @@ function chapterState(){
  if(y<contact.offsetTop-innerHeight*.4)return {chapter:'lab',progress:0,index:galleryIndex,phase:0};
  return {chapter:'contact',progress:phase(contact,contact.offsetTop+contact.offsetHeight-innerHeight),index:galleryIndex,phase:0};
 }
-function updateSpace(){worldState=chapterState();const finale=studioFinale.update({motion,fallback:root.classList.contains('spatial-fallback')});if(finale.active){worldState={chapter:'finale',progress:finale.progress,index:galleryIndex,phase:0,screen:finale.screen,outro:finale.outro};startStudio();}galleryVisible=worldState.chapter==='gallery';root.dataset.spaceChapter=worldState.chapter;
- if(galleryVisible){if(worldState.index!==galleryIndex){if(galleryLive||manualStep||galleryStep>0)galleryLiveProjects.add(galleryIndex);galleryIndex=worldState.index;manualStep=false;galleryLive=galleryLiveProjects.has(galleryIndex);}if(!manualStep)galleryStep=Math.min(2,Math.floor(worldState.phase/.24));renderGallery(galleryIndex);}
+function updateSpace(){worldState=chapterState();const finale=studioFinale.update({motion,fallback:root.classList.contains('spatial-fallback'),ready:Boolean(spatialController?.finaleReady)});if(finale.active){worldState={chapter:'finale',progress:finale.progress,index:galleryIndex,phase:0,screen:finale.screen,outro:finale.outro};startStudio();}galleryVisible=worldState.chapter==='gallery';root.dataset.spaceChapter=worldState.chapter;
+ if(galleryVisible){if(worldState.index!==galleryIndex){if(galleryLive||manualStep||galleryStep>0)galleryLiveProjects.add(galleryIndex);galleryIndex=worldState.index;manualStep=false;galleryLive=galleryLiveProjects.has(galleryIndex);}if(!manualStep)galleryStep=Math.min(2,Math.floor(worldState.phase/.22));renderGallery(galleryIndex);}
  syncDemo();worldState.live=galleryLive||manualStep||galleryStep>0;spatialController?.update(worldState,{direct:directMove});directMove=false;if(worldBootReady)ensureWorld();
 }
 
@@ -153,10 +154,10 @@ function startStudio(){if(studioStarted)return;studioStarted=true;import('./neur
 const labObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){startStudio();labObserver.disconnect();}},{rootMargin:'200px'});labObserver.observe($('#lab'));
 // One renderer owns the complete world and its eight real project displays.
 function ensureWorld(){
- if(worldStarted||document.querySelector('dialog[open]')||['lab','index'].includes(worldState.chapter))return;
+ if(worldStarted||document.querySelector('dialog[open]')||worldState.chapter==='index')return;
  worldStarted=true;formObserver.disconnect();
  if(navigator.connection?.saveData||new URL(location.href).searchParams.get('graphics')==='off'){root.classList.add('spatial-fallback');queueFrame();return;}
- import('./spatial-world.bundle.js?v=47').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
+ import('./spatial-world.bundle.js?v=48').then(({initSpatialWorld})=>{spatialController=initSpatialWorld(engine,studioFinale,worldState,queueFrame);if(!spatialController){root.classList.add('spatial-fallback');queueFrame();}else spatialController.update(worldState);}).catch(error=>{console.error('Spatial gallery could not load',error);root.classList.add('spatial-fallback');queueFrame();});
 }
 const formObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))ensureWorld();},{rootMargin:'0px'});formObserver.observe($('#home'));worldBootReady=true;ensureWorld();
 $$('dialog').forEach(d=>{d.addEventListener('toggle',()=>{if(d.open)spatialController?.release();syncDemo();});d.addEventListener('close',()=>{preview?.resume();requestAnimationFrame(()=>{ensureWorld();spatialController?.update(worldState);syncDemo();});});});

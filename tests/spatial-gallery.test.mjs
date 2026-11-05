@@ -41,6 +41,6 @@ test('gallery entry arrives facing the first display and has no compressed first
  for(const portrait of [false,true]){
   let previous=spatialShot({chapter:'arrival',progress:.62,portrait});
   for(let n=621;n<=1000;n++){const next=spatialShot({chapter:'arrival',progress:n/1000,portrait});const a=new THREE.Vector3(...previous.target).sub(new THREE.Vector3(...previous.position)).normalize(),b=new THREE.Vector3(...next.target).sub(new THREE.Vector3(...next.position)).normalize();assert.ok(a.dot(b)>.999);assert.ok(Math.hypot(...next.position.map((v,i)=>v-previous.position[i]))<.3);previous=next;}
-  for(let n=0;n<=58;n++)assert.deepEqual(spatialShot({chapter:'gallery',index:0,phase:n/100,portrait}),stationShot(0,{portrait}));
+  for(let n=0;n<=62;n++)assert.deepEqual(spatialShot({chapter:'gallery',index:0,phase:n/100,portrait}),stationShot(0,{portrait}));
  }
 });

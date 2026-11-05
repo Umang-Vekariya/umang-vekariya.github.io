@@ -38,7 +38,7 @@ test('preserved interactive models calculate coverage, aggregation, offline dedu
 
 test('static demos settle after updates, animated demos keep playing, and reduced motion draws on demand',async()=>{
  const {createDemoEngine}=await import('../dist/project-demos.js');
- const saved={document:globalThis.document,requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame};
+ const saved={document:globalThis.document,requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame,fetch:globalThis.fetch};
  const frames=new Map(),listeners=new Map();let next=0,paint=0;
  const context=new Proxy({}, {get:(_,k)=>k==='measureText'?()=>({width:80}):()=>{paint++;},set:()=>true});
  const canvas=()=>({width:0,height:0,setAttribute(){},addEventListener(){},getContext:()=>context});
@@ -51,14 +51,15 @@ test('static demos settle after updates, animated demos keep playing, and reduce
   const revision=engine.revision;engine.setProgress(0,true,true);assert.equal(frames.size,0,'unchanged scroll updates restart the static demo');engine.setProgress(1,true,true);run(105);assert.equal(engine.revision,revision+1,'a real stage change is delayed by the animation throttle');assert.equal(frames.size,0);
   const switches=[];engine.subscribeProjectChange((from,to)=>switches.push({from,to,pixels:engine.frameProjectId}));assert.equal(engine.frameProjectId,'wnams');engine.setProject('realityforge');assert.deepEqual(switches,[{from:'wnams',to:'realityforge',pixels:'wnams'}],'the previous exhibit cannot freeze its pixels before the shared canvas changes');assert.equal(engine.frameProjectId,'wnams','changing selection relabels pixels before they are painted');engine.setProgress(2,true,true);run(150);assert.equal(engine.frameProjectId,'realityforge');assert.equal(frames.size,1,'actual motion stopped');
   engine.setProgress(0,false,true);assert.equal(frames.size,0);engine.setProgress(2,true,false);assert.equal(frames.size,1);run(200);assert.equal(frames.size,0,'reduced motion continues a render loop');
-  engine.pointer(.7,.4,'down');assert.equal(frames.size,1,'a real interaction did not request a new frame');engine.dispose();assert.equal(frames.size,0);assert.equal(listeners.size,0);
+  engine.pointer(.7,.4,'down');assert.equal(frames.size,1,'a real interaction did not request a new frame');
+  let finish;globalThis.fetch=()=>new Promise(resolve=>{finish=resolve;});engine.setProject('intent-lab');engine.setProgress(0,true,false);run(250);engine.setProject('clubsphere');status.textContent='Current booking status';finish({ok:true,json:async()=>({runs:[]})});await Promise.resolve();await Promise.resolve();await Promise.resolve();assert.equal(status.textContent,'Current booking status','a late download overwrote another project’s status');engine.dispose();assert.equal(frames.size,0);assert.equal(listeners.size,0);
  }finally{Object.assign(globalThis,saved);}
 });
 
 
 test('long travel and large turns get more time than neighbouring exhibits',()=>{
- const near=journeyDuration(8,.5),far=journeyDuration(40,.5);assert.ok(near>=1700);assert.ok(far>near);assert.ok(journeyDuration(20,2)>journeyDuration(20,.2));assert.equal(journeyDuration(1000,10),3200);
- let previous=0;for(let d=0;d<100;d++){const duration=journeyDuration(d,1);assert.ok(duration>=previous);assert.ok(duration>=1700&&duration<=3200);previous=duration;}
+ const near=journeyDuration(8,.5),far=journeyDuration(40,.5);assert.ok(near>=1700);assert.ok(far>near);assert.ok(journeyDuration(20,2)>journeyDuration(20,.2));assert.equal(journeyDuration(1000,10),3600);
+ let previous=0;for(let d=0;d<100;d++){const duration=journeyDuration(d,1);assert.ok(duration>=previous);assert.ok(duration>=1700&&duration<=3600);previous=duration;}
  assert.ok(titleFrame(.25).typeOpacity>.75,'the identity disappears before it can be read');
 });
 

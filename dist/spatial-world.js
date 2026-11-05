@@ -3,7 +3,7 @@ import {createSpatialCopy} from './spatial-copy.js';
 import {createWorldLettering} from './world-lettering.js';
 import {createProjectAtlas,atlasClearanceParting,atlasCanInteract} from './project-atlas.js';
 import {finaleShot,finaleDisplay,contactDisplay,displayCorners} from './studio-reveal-motion.js';
-import {createGamingDesk} from './gaming-desk.js';
+import {createDeferredScene} from './deferred-scene.js';
 import * as THREE from 'three';
 import {roundedSolid,pedestalGeometry,studioEnvironment,createExhibitSurface,createDisplayHousing} from './spatial-craft.js';
 import {createFormGeometry} from './engineering-form.js';
@@ -11,8 +11,9 @@ import {spatialShot,stationShot,stations,galleryCenter} from './spatial-layout.j
 import {journeyDuration,journeyArc,atlasPassagePhase} from './engineering-motion.js';
 import {projectStories} from './project-stories.js';
 import {projects} from './portfolio-data.js';
+import {exhibitCopy} from './project-presentation.js';
 const C={black:0x050714,blue:0x174aff,lime:0xd4ff35};
-export function initSpatialWorld(engine,studioFinale,initialState={chapter:'home',progress:0,index:0,phase:0}){
+export function initSpatialWorld(engine,studioFinale,initialState={chapter:'home',progress:0,index:0,phase:0},onFinaleReady=()=>{}){
  const host=document.querySelector('#spatial-world'),hit=document.querySelector('#world-display-hit');
  let renderer;try{renderer=new THREE.WebGLRenderer({alpha:false,antialias:true,powerPreference:'high-performance'});}catch{document.documentElement.classList.add('spatial-fallback');return null;}
  host.append(renderer.domElement);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.85;renderer.shadowMap.enabled=innerWidth>760;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -41,15 +42,16 @@ export function initSpatialWorld(engine,studioFinale,initialState={chapter:'home
  const atlas=createProjectAtlas({projects,stories:projectStories,materials:{blue,dark,metal,lime},onLoad:()=>schedule()}),personal=atlas.group;personal.position.set(innerWidth<760?4.5:6,0,-26);personal.scale.setScalar(innerWidth<760?.88:1);scene.add(personal);atlas.banks.forEach(bank=>contactShadow(2.7,0,0,bank));
  const floorRoute=[];for(let i=0;i<=100;i++){const t=i/100;floorRoute.push([Math.sin(t*Math.PI*2)*5,.035,-3-t*74]);}line(floorRoute,0x2553ed);
  const route=[];for(let i=0;i<=180;i++){const a=i/180*Math.PI*2;route.push([Math.cos(a)*20,.06,galleryCenter[2]+Math.sin(a)*17]);}line(route,0x234bd1);
- // Both displays, peripherals, hands and room exist for the whole visit.
- const desk=createGamingDesk();scene.add(desk.group);
+ // Prepare the finale well before it can enter the camera's view.
+ const deskLoader=createDeferredScene({load:()=>import('./gaming-desk.js'),mount:({createGamingDesk})=>{const desk=createGamingDesk();scene.add(desk.group);renderer.shadowMap.needsUpdate=true;return desk;},onReady:()=>{host.dataset.finaleAssets='ready';onFinaleReady();schedule();},onError:()=>{host.dataset.finaleAssets='unavailable';onFinaleReady();}});
+ function prepareFinale(state){if(!['home','passage','about','none'].includes(state.chapter)){deskLoader.preload();host.dataset.finaleAssets=deskLoader.state==='failed'?'unavailable':deskLoader.state;}}
  const projectDisplay=display=>displayCorners(display).map(point=>{const p=new THREE.Vector3(...point).project(camera);return {x:(p.x*.5+.5)*innerWidth,y:(.5-p.y*.5)*innerHeight};});
  const surfaces=[],screens=[],roots=[],surfaceRevisions=Array(8).fill(-1);const loader=new THREE.TextureLoader();
  for(let i=0;i<8;i++){
   const s=stations[i],root=new THREE.Group();root.position.set(s.x,0,s.z);root.rotation.y=s.yaw;scene.add(root);roots.push(root);
   pedestal(9.3,1,0,root);
   const {group:screenGroup,screen}=createDisplayHousing({metal,dark,lime});screenGroup.position.set(3,5.5,0);root.add(screenGroup);
-  screen.userData.index=i;screens.push(screen);const surface=createExhibitSurface(document.createElement('canvas'),{width:innerWidth<=760?1200:innerWidth>1280?1800:1440});surfaces.push(surface);surface.texture.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());screen.material.map=surface.texture;
+  screen.userData.index=i;screens.push(screen);const surface=createExhibitSurface(document.createElement('canvas'),{width:innerWidth<=760?1200:innerWidth>1280?1800:1440,caption:{title:projects[i].name,summary:projects[i].short,scope:exhibitCopy[projects[i].id].scope}});surface.poster();surfaces.push(surface);surface.texture.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());screen.material.map=surface.texture;
   box(.18,1.36,.5,dark,-1.3,1.12,0,root);box(.18,1.36,.5,dark,7.3,1.12,0,root);box(10.4,.14,1.1,metal,3,.63,0,root);
   const source=projectStories[projects[i].id].evidence[0];if(source){loader.load(source.poster||source.src,t=>{surface.poster(t.image);t.dispose();schedule();});}else{const c=document.createElement('canvas');c.width=1200;c.height=760;const ctx=c.getContext('2d');ctx.fillStyle='#060a1f';ctx.fillRect(0,0,1200,760);ctx.fillStyle='#d5ff36';ctx.font='52px sans-serif';ctx.fillText('DEEPFAKE DETECTION',65,110);ctx.font='24px sans-serif';ctx.fillStyle='#91aaff';ctx.fillText('Frame-level prediction → video-level decision',65,165);for(let j=0;j<8;j++){ctx.strokeStyle='#214cff';ctx.strokeRect(65+j*137,235,110,300);ctx.fillStyle='#274eff';ctx.fillRect(85+j*137,455-j%3*65,70,65+j%3*65);}ctx.fillStyle='#b5c4df';ctx.fillText('Illustrative frame scores · Open to inspect the actual pipeline',65,650);surface.poster(c);}
   // Distinct, data-related artifacts beside each actual display.
@@ -104,7 +106,7 @@ export function initSpatialWorld(engine,studioFinale,initialState={chapter:'home
   if(currentChapter==='gallery'&&!document.querySelector('dialog[open]')){const r=bounds();if(r){hit.hidden=false;hit.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;`;hit.setAttribute('aria-label','Open '+projects[activeIndex].name+' from the 3D display');}else hit.hidden=true;}else hit.hidden=true;
   if(settling||Math.abs(aim.x-pointer.x)+Math.abs(aim.y-pointer.y)>.002)schedule();
  }
- function update(state,{direct=false}={}){if(flight&&!direct&&(state.chapter!==latest.chapter||state.index!==latest.index||Math.abs(state.phase-latest.phase)>.001)){flight.done?.({cancelled:true});flight=null;}const previous=currentChapter;latest=state;currentChapter=state.chapter;const index=state.chapter==='gallery'?state.index:-1;activeIndex=index;if(state.live)copyDemoFrame(engine.canvas);if(!motion)renderer.shadowMap.needsUpdate=true;
+ function update(state,{direct=false}={}){prepareFinale(state);if(flight&&!direct&&(state.chapter!==latest.chapter||state.index!==latest.index||Math.abs(state.phase-latest.phase)>.001)){flight.done?.({cancelled:true});flight=null;}const previous=currentChapter;latest=state;currentChapter=state.chapter;const index=state.chapter==='gallery'?state.index:-1;activeIndex=index;if(state.live)copyDemoFrame(engine.canvas);if(!motion)renderer.shadowMap.needsUpdate=true;
   if(direct&&motion){const target=goal();setGoal(target);flight?.done?.({cancelled:true});flight={start:performance.now(),duration:journeyDuration(camera.position.distanceTo(desiredPosition),camera.quaternion.angleTo(desiredQuaternion)),lift:true,distance:camera.position.distanceTo(desiredPosition),fromPosition:camera.position.clone(),fromQuaternion:camera.quaternion.clone(),toPosition:desiredPosition.clone(),toQuaternion:desiredQuaternion.clone(),fromFov:camera.fov,toFov:desiredFov};}
   if(['index','none'].includes(state.chapter)){spatialCopy.update(camera,latest);visible=false;cancelAnimationFrame(frame);frame=0;hit.hidden=true;}else{visible=true;schedule();}
  }
@@ -115,6 +117,6 @@ export function initSpatialWorld(engine,studioFinale,initialState={chapter:'home
  addEventListener('pointermove',e=>{if(currentChapter!=='home'||!motion)return;pointer.x=e.clientX/innerWidth*2-1;pointer.y=e.clientY/innerHeight*2-1;schedule();},{passive:true});
  const control=document.querySelector('#form-toggle');control.disabled=false;control.addEventListener('click',()=>{unfold=!unfold;control.setAttribute('aria-pressed',String(unfold));schedule();});
  addEventListener('portfolio-motion',e=>{motion=e.detail.enabled;renderer.shadowMap.needsUpdate=true;if(!motion){flight?.done?.({cancelled:true});flight=null;}schedule();});
- renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();disposed=true;contourSurface.dispose();lettering.dispose();spatialCopy.dispose();cancelAnimationFrame(frame);document.documentElement.classList.add('spatial-fallback');hit.hidden=true;dispatchEvent(new Event('resize'));});
- addEventListener('pagehide',()=>{disposed=true;flight?.done?.({cancelled:true});unsubscribe();contourSurface.dispose();lettering.dispose();spatialCopy.dispose();atlas.dispose();removeEventListener('pointermove',atlasMove);removeEventListener('pointerdown',atlasDown);removeEventListener('pointercancel',atlasCancel);removeEventListener('click',atlasClick);document.removeEventListener('pointerleave',atlasLeave);removeEventListener('blur',atlasLeave);cancelAnimationFrame(frame);scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});surfaces.forEach(s=>s.dispose());desk.dispose();shadowTexture.dispose();env.dispose();renderer.dispose();},{once:true});schedule();return {update,focus,pointer(x,y,type){if(activeIndex<0)return;raycaster.setFromCamera(new THREE.Vector2(x/innerWidth*2-1,1-y/innerHeight*2),camera);const intersection=raycaster.intersectObject(screens[activeIndex],false)[0];if(intersection?.uv)engine.pointer(intersection.uv.x,intersection.uv.y,type);},release(){flight?.done?.({cancelled:true});flight=null;schedule();},bounds};
+ renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();disposed=true;deskLoader.dispose();contourSurface.dispose();lettering.dispose();spatialCopy.dispose();cancelAnimationFrame(frame);document.documentElement.classList.add('spatial-fallback');hit.hidden=true;dispatchEvent(new Event('resize'));});
+ addEventListener('pagehide',()=>{disposed=true;flight?.done?.({cancelled:true});unsubscribe();contourSurface.dispose();lettering.dispose();spatialCopy.dispose();atlas.dispose();removeEventListener('pointermove',atlasMove);removeEventListener('pointerdown',atlasDown);removeEventListener('pointercancel',atlasCancel);removeEventListener('click',atlasClick);document.removeEventListener('pointerleave',atlasLeave);removeEventListener('blur',atlasLeave);cancelAnimationFrame(frame);scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});surfaces.forEach(s=>s.dispose());deskLoader.dispose();shadowTexture.dispose();env.dispose();renderer.dispose();},{once:true});prepareFinale(initialState);schedule();return {update,focus,get finaleReady(){return deskLoader.ready;},preloadFinale(){deskLoader.preload();},pointer(x,y,type){if(activeIndex<0)return;raycaster.setFromCamera(new THREE.Vector2(x/innerWidth*2-1,1-y/innerHeight*2),camera);const intersection=raycaster.intersectObject(screens[activeIndex],false)[0];if(intersection?.uv)engine.pointer(intersection.uv.x,intersection.uv.y,type);},release(){flight?.done?.({cancelled:true});flight=null;schedule();},bounds};
 }

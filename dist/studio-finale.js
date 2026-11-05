@@ -6,20 +6,22 @@ export function initStudioFinale(onResize){
  track.className='studio-reveal-track';const windowEl=document.createElement('div');windowEl.className='studio-screen-window';consoleEl.before(track);track.append(windowEl);windowEl.append(consoleEl);
  const cue=document.createElement('p');cue.className='studio-exit-cue';cue.textContent='KEEP SCROLLING / A DIFFERENT PERSPECTIVE';track.append(cue);
  const contactWindow=document.createElement('div'),contactContent=document.createElement('div');contactWindow.className='desk-contact-window';contactContent.className='desk-contact-content';contactWindow.append(contactContent);contact.append(contactWindow);contactWindow.hidden=true;
- let screen=null,pinned=false,contactPinned=false,enabled=true,resizeFrame=0,disposed=false,interacting=false;
+ let screen=null,pinned=false,contactPinned=false,enabled=true,resizeFrame=0,disposed=false,interacting=false,deferred=false;
  function measure(){
   const width=track.clientWidth;if(!width)return;if(pinned)consoleEl.style.width=width+'px';
   const height=consoleEl.offsetHeight,normalTop=Math.min(0,innerHeight-height-32),windowHeight=innerWidth<760?Math.min(height,innerHeight-140):height,top=innerWidth<760?108:normalTop;
   screen={left:track.getBoundingClientRect().left,top,width,height:windowHeight,normalTop,contentOffset:height-windowHeight,viewportWidth:innerWidth,viewportHeight:innerHeight};if(pinned){windowEl.style.width=width+'px';windowEl.style.height=windowHeight+'px';}
-  track.style.height=(height+(enabled?innerHeight*1.65:0))+'px';track.style.setProperty('--exit-cue-top',height-26+'px');
+  track.style.height=(height+(enabled?innerHeight*1.9:0))+'px';track.style.setProperty('--exit-cue-top',height-26+'px');
  }
  function unpin(){if(!pinned)return;pinned=false;consoleEl.classList.remove('studio-in-space');consoleEl.style.width='';consoleEl.style.transform='';windowEl.classList.remove('is-pinned');windowEl.style.cssText='';consoleEl.inert=false;insight.setAttribute('aria-live','polite');}
  function restoreContact(){if(!contactPinned)return;contactPinned=false;for(const node of [...contactContent.children])contact.insertBefore(node,contactWindow);contactWindow.hidden=true;contactWindow.inert=true;delete root.dataset.deskScreen;}
  function pinContact(){if(contactPinned)return;contactPinned=true;contactContent.append(...[...contact.children].filter(node=>node!==contactWindow));contactWindow.hidden=false;root.dataset.deskScreen='true';}
- function update({motion=true,fallback=false}={}){
-  const nextEnabled=motion&&!fallback;if(nextEnabled!==enabled){enabled=nextEnabled;if(!enabled){unpin();restoreContact();}measure();}
+ function update({motion=true,fallback=false,ready=true}={}){
+  if(!ready)deferred=true;
+  if(deferred&&ready&&screen){const start=track.getBoundingClientRect().top+scrollY-screen.normalTop;if(scrollY<start-32)deferred=false;}
+  const nextEnabled=motion&&!fallback&&ready&&!deferred;if(nextEnabled!==enabled){enabled=nextEnabled;if(!enabled){unpin();restoreContact();}measure();}
   if(!screen)measure();if(!screen)return {active:false};
-  const start=track.getBoundingClientRect().top+scrollY-screen.normalTop,progress=clamp((scrollY-start)/Math.max(1,innerHeight*1.65)),active=enabled&&scrollY>=start-1&&(!interacting||scrollY>start+innerHeight*.5);
+  const start=track.getBoundingClientRect().top+scrollY-screen.normalTop,progress=clamp((scrollY-start)/Math.max(1,innerHeight*1.9)),active=enabled&&scrollY>=start-1&&(!interacting||scrollY>start+innerHeight*.5);
   root.dataset.finale=active?'true':'false';root.style.setProperty('--finale-open',active?smooth(.01,.22,progress):0);
   cue.hidden=!enabled;cue.style.opacity=String(active?1-smooth(.02,.25,progress):1);
   if(active&&progress>.002){if(!pinned){pinned=true;consoleEl.classList.add('studio-in-space');consoleEl.style.width=screen.width+'px';windowEl.classList.add('is-pinned');windowEl.style.width=screen.width+'px';windowEl.style.height=screen.height+'px';windowEl.style.transform=`translate(${screen.left}px,${screen.top}px)`;}

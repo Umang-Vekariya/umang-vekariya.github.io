@@ -20,7 +20,7 @@ npm run check
 npm test
 ```
 
-The build bundles `spatial-world.js` and its Three.js dependencies. Commit the generated `dist/spatial-world.bundle.js` alongside the source. The existing GitHub Pages workflow uploads `dist/` on a push to `main`; no server, keys, or remote build is required.
+The build splits `spatial-world.js`, its shared Three.js dependencies and the deferred gaming desk into ES modules. Commit `dist/spatial-world.bundle.js` and all generated `dist/assets/world/*.js` files alongside the source. The existing GitHub Pages workflow uploads `dist/` on a push to `main`; no server, keys, or remote build is required.
 
 ## Presentation architecture
 
@@ -49,7 +49,7 @@ The old rooms and corridor have been retired; this is one shared open space. The
 
 The pre-redesign baseline is also archived outside this checkout at `../backups/before-art-of-engineering-2026-11-03/github-pages.tar.gz`, with its SHA in `commit.txt`. The original private Sites checkout remains separate.
 
-See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The 49 regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.
+See [the spatial redesign and verification record](docs/spatial-gallery.md) and [the earlier editorial audit](docs/art-of-engineering.md). The 54 regression tests cover neural-network gradients and worker lifecycle, independent test data, opening and camera-path continuity, responsive exhibit framing, sculpture/morph integrity, shared-image proportions, retained project routes/evidence/apps, demo calculations, and idle/reduced-motion rendering. Browser checks are recorded separately; no performance score or physical-device certification is claimed.
 
 The real Neural Studio pulls back onto the left monitor of a first-person gaming desk, with the original contact document appearing on the right. Its original DOM, canvas and worker remain in place. See [first-person-desk.md](docs/first-person-desk.md) for the close seated framing, procedural room, responsive head turn and reversible screen handoff.
 
@@ -72,3 +72,5 @@ The gallery now updates only changed lettering, draws static demos on demand, st
 The desk hands are separate left/right continuous sculpts with smooth fingertips, matte skin detail and fitted cloth sleeves. The mouse is wireless. Regenerate their compact meshes with `npm run build:hands` when editing `scripts/sculpt-hands.mjs`, then run the normal build. The header/footer share the same uncut UV artwork and the favicon uses the same silhouette.
 
 The latest résumé, matching toolkit/contact information, cobalt/lime document-page palette and startup handoff repair are documented in [resume-theme-update.md](docs/resume-theme-update.md). The left thumb now rests near V/F; the spacebar is unbranded and the hands have no nail plates.
+
+The final release pass prioritizes three selected projects, adds concise exhibit captions, gives gallery stages more reading time, and preloads the detailed finale outside the opening path. Build sizes, fallback behavior and verification are documented in [final-release-pass.md](docs/final-release-pass.md).

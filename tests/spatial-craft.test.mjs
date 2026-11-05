@@ -33,3 +33,10 @@ test('each exhibit retains its own live frame when the shared demo moves on, inc
  const shared={id:'live A'};a.frame(shared);assert.equal(a.texture.image,shared,'the active source is copied again before upload');assert.equal(a.canvas.pixels,'poster A');a.freeze();shared.id='live B';b.frame(shared);b.freeze();a.poster({id:'late A',width:100,height:100});
  assert.equal(a.canvas.pixels,'live A');assert.equal(b.canvas.pixels,'live B');assert.notEqual(a.texture,b.texture);assert.equal(a.live,true);assert.equal(a.texture.generateMipmaps,false,'live uploads regenerate the full mip chain');assert.equal(a.texture.minFilter,THREE.LinearFilter);a.dispose();b.dispose();
 });
+
+test('exhibit summaries reserve their own readable space without cropping project evidence',()=>{
+ const calls=[],labels=[],context={fillRect(){},drawImage(...args){calls.push(args);},fillText(...args){labels.push(args);}},canvas={getContext:()=>context};
+ const surface=createExhibitSurface(canvas,{width:1200,caption:{title:'Intent Lab',summary:'Inspect each proposed action.',scope:'Recorded runs · Mock tools'}});surface.poster();assert.equal(labels.length,3);assert.equal(calls.length,0);
+ for(const image of [{width:1920,height:1080},{width:800,height:1400}]){surface.poster(image);const [,x,y,w,h]=calls.at(-1);assert.ok(Math.abs(w/h-image.width/image.height)<1e-8);assert.ok(x>=20&&x+w<=1180);assert.ok(y>=145&&y+h<=680);}
+ surface.dispose();
+});

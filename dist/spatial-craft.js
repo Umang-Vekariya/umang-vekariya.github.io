@@ -27,11 +27,14 @@ export function studioEnvironment(){
 
 // Stream the active canvas directly. Freeze its pixels into the owned canvas
 // before the shared engine changes projects, preserving each previous display.
-export function createExhibitSurface(canvas,{width=1440}={}){
+export function createExhibitSurface(canvas,{width=1440,caption=null}={}){
  const ctx=canvas.getContext('2d'),height=width*760/1200;canvas.width=width;canvas.height=height;
  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;let live=false,stream=null;
  const background=()=>{ctx.fillStyle='#03081a';ctx.fillRect(0,0,width,height);};background();
- return {canvas,texture,get live(){return live;},poster(image){if(live)return; background();const fit=Math.min((width-40)/image.width,(height-40)/image.height),w=image.width*fit,h=image.height*fit;ctx.drawImage(image,(width-w)/2,(height-h)/2,w,h);texture.needsUpdate=true;},frame(image){if(!live){live=true;texture.generateMipmaps=false;texture.minFilter=THREE.LinearFilter;}stream=image;texture.image=image;texture.needsUpdate=true;},freeze(){if(!stream)return;ctx.drawImage(stream,0,0,width,height);stream=null;texture.image=canvas;texture.needsUpdate=true;},dispose(){stream=null;texture.dispose();}};
+ return {canvas,texture,get live(){return live;},poster(image){if(live)return;background();const scale=width/1200,top=caption?145*scale:20,bottom=caption?680*scale:height-20;
+   if(image){const fit=Math.min((width-40*scale)/image.width,(bottom-top)/image.height),w=image.width*fit,h=image.height*fit;ctx.drawImage(image,(width-w)/2,top+(bottom-top-h)/2,w,h);}
+   if(caption){ctx.fillStyle='#edf3ff';ctx.font=`500 ${36*scale}px sans-serif`;ctx.fillText(caption.title,40*scale,58*scale);ctx.fillStyle='#a9bce7';ctx.font=`400 ${24*scale}px sans-serif`;ctx.fillText(caption.summary,40*scale,105*scale);ctx.fillStyle='#7198ff';ctx.font=`400 ${22*scale}px sans-serif`;ctx.fillText(caption.scope,40*scale,738*scale);}
+   texture.needsUpdate=true;},frame(image){if(!live){live=true;texture.generateMipmaps=false;texture.minFilter=THREE.LinearFilter;}stream=image;texture.image=image;texture.needsUpdate=true;},freeze(){if(!stream)return;ctx.drawImage(stream,0,0,width,height);stream=null;texture.image=canvas;texture.needsUpdate=true;},dispose(){stream=null;texture.dispose();}};
 }
 
 export function createDisplayHousing({metal,dark,lime}){

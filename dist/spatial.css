@@ -157,3 +157,17 @@ html[data-desk-screen=true] #contact>.desk-contact-window .contact-title{opacity
 
 /* The legacy DOM opening is a fallback, never a prelude to the WebGL identity. */
 html:not(.spatial-copy-ready):not(.spatial-fallback) .hero-type,html:not(.spatial-copy-ready):not(.spatial-fallback) .hero-top,html:not(.spatial-copy-ready):not(.spatial-fallback) .hero-bottom,html:not(.spatial-copy-ready):not(.spatial-fallback) .passage-caption{visibility:hidden}
+
+/* More reading time, without speeding up the journey between displays. */
+.spatial-gallery{height:1080svh}
+#gallery-step-note{font-size:14px;line-height:1.7;max-width:36ch}
+.featured-label{display:block;color:#d4ff35;font:11px/1.5 var(--mono);letter-spacing:.09em;margin-top:24px}
+.tile-featured .tile-meta>p:first-of-type{margin-top:12px}
+.tile-proof{font:13px/1.75 var(--body);color:#9ab3e9;margin-top:14px;max-width:52ch}
+#quick-projects button:nth-child(-n+3)>span{color:#d4ff35}
+@media(max-width:760px){.spatial-gallery{height:1160svh}.featured-label{margin-top:20px;font-size:10px}.tile-proof{font-size:13px}}
+
+.index-introduction{font:16px/1.7 var(--body);color:#a9bce7;max-width:48ch;margin:28px 0 48px}
+
+.tile-meta>.tile-category{display:flex;justify-content:space-between;gap:14px;font:11px/1.6 var(--mono);letter-spacing:.04em;color:#a3b9e3;margin:22px 0 7px}.tile-featured .tile-meta>.tile-category{margin-top:12px}
+.gallery-map button[data-selected-build]{border-color:#d4ff3570}.gallery-map button[data-selected-build]:hover{border-color:#d4ff35}
